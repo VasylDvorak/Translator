@@ -5,7 +5,7 @@ import com.translator.model.data.AppState
 import com.translator.model.data.DataModel
 import com.translator.model.repository.Repository
 import com.translator.presenter.Interactor
-import io.reactivex.Observable
+import io.reactivex.rxjava3.core.Observable
 
 class MainInteractor(
     private val remoteRepository: Repository<List<DataModel>>,
