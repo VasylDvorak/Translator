@@ -12,8 +12,8 @@ import com.translator.model.data.DataModel
 class MainAdapter(
     private var onListItemClickListener: OnListItemClickListener,
     private var data: List<DataModel>
-) :
-    RecyclerView.Adapter<MainAdapter.RecyclerItemViewHolder>() {
+) : RecyclerView.Adapter<MainAdapter.RecyclerItemViewHolder>() {
+
 
     fun setData(data: List<DataModel>) {
         this.data = data
@@ -42,7 +42,9 @@ class MainAdapter(
                 itemView.findViewById<TextView>(R.id.header_textview_recycler_item).text = data.text
                 itemView.findViewById<TextView>(R.id.description_textview_recycler_item).text =
                     data.meanings?.get(0)?.translation?.translation
+
                 itemView.setOnClickListener { openInNewWindow(data) }
+
             }
         }
     }
@@ -50,6 +52,7 @@ class MainAdapter(
     private fun openInNewWindow(listItemData: DataModel) {
         onListItemClickListener.onItemClick(listItemData)
     }
+
 
     interface OnListItemClickListener {
         fun onItemClick(data: DataModel)

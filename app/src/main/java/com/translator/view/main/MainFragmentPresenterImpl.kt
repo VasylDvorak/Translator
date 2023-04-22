@@ -8,10 +8,10 @@ import com.translator.model.repository.RepositoryImplementation
 import com.translator.presenter.Presenter
 import com.translator.rx.SchedulerProvider
 import com.translator.view.base.View
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.observers.DisposableObserver
+import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.rxjava3.observers.DisposableObserver
 
-class MainPresenterImpl<T : AppState, V : View>(
+class MainFragmentPresenterImpl<T : AppState, V : View>(
     private val interactor: MainInteractor = MainInteractor(
         RepositoryImplementation(DataSourceRemote()),
         RepositoryImplementation(DataSourceLocal())
@@ -40,7 +40,7 @@ class MainPresenterImpl<T : AppState, V : View>(
             interactor.getData(word, isOnline)
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.ui())
-                .doOnSubscribe { currentView?.renderData(AppState.Loading(null)) }
+                .doOnSubscribe { currentView?.appStateProgressEmpty() }
                 .subscribeWith(getObserver())
         )
     }
@@ -49,14 +49,41 @@ class MainPresenterImpl<T : AppState, V : View>(
         return object : DisposableObserver<AppState>() {
 
             override fun onNext(appState: AppState) {
-                currentView?.renderData(appState)
+
+                when (appState) {
+                    is AppState.Success -> {
+                        val dataModel = appState.data
+                        if (dataModel == null || dataModel.isEmpty()) {
+
+                            currentView?.responseEmpty()
+                        } else {
+                            currentView?.responseHasData(dataModel)
+                        }
+                    }
+                    is AppState.Loading -> {
+                        currentView?.showViewLoading()
+                        if (appState.progress != null) {
+
+                            currentView?.appStateProgressNotEmpty(appState.progress)
+
+                        } else {
+                            currentView?.appStateProgressEmpty()
+                        }
+                    }
+                    is AppState.Error -> {
+                        currentView?.showErrorScreen(appState.error.message)
+                    }
+                }
+
             }
 
             override fun onError(e: Throwable) {
-                currentView?.renderData(AppState.Error(e))
+
+                currentView?.showErrorScreen(AppState.Error(e).error.message)
             }
 
             override fun onComplete() {
+
             }
         }
     }
