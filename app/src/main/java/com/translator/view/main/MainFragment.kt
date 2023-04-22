@@ -55,8 +55,6 @@ class MainFragment : BaseFragment<AppState>() {
         super.onViewCreated(view, savedInstanceState)
 
         searchListener()
-
-
     }
 
 
