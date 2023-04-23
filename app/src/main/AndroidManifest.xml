@@ -16,7 +16,7 @@
         android:theme="@style/Theme.Translator">
         <activity
             android:name=".view.main.MainActivity"
-            android:configChanges="screenSize|screenLayout|keyboardHidden|screenLayout"
+            android:configChanges="screenSize|screenLayout|keyboardHidden"
             android:exported="true"
             android:screenOrientation="portrait">
             <intent-filter>

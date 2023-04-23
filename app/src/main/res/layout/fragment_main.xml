@@ -20,7 +20,7 @@
     </FrameLayout>
 
     <androidx.constraintlayout.motion.widget.MotionLayout
-        android:id="@+id/wikipedia_motion"
+        android:id="@+id/search_motion"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingStart="10dp"
