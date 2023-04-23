@@ -1,4 +1,4 @@
-package com.translator.view.main
+package com.translator.domain
 
 
 import com.translator.model.data.AppState

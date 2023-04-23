@@ -3,7 +3,6 @@ package com.translator.view.main
 import android.content.Context
 import android.os.Bundle
 import android.view.Menu
-import android.view.MenuInflater
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -12,6 +11,8 @@ import com.github.terrakok.cicerone.androidx.AppNavigator
 import com.translator.R
 import com.translator.application.App
 import com.translator.databinding.ActivityMainBinding
+import com.translator.presenter.BackButtonListener
+import com.translator.presenter.MainPresenter
 import javax.inject.Inject
 import kotlin.properties.Delegates
 
@@ -35,11 +36,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setTheme = this.getPreferences(Context.MODE_PRIVATE).getBoolean(THEME_KEY, false)
-        if(setTheme){
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-        }else{
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-        }
+        setDarkLightTheme(setTheme)
 
         vb = ActivityMainBinding.inflate(layoutInflater)
         setContentView(vb?.root)
@@ -47,6 +44,14 @@ class MainActivity : AppCompatActivity() {
         App.instance.appComponent.inject(this)
         presenter.mainFragmentStart()
 
+    }
+
+    private fun setDarkLightTheme(setTheme: Boolean) {
+        if (setTheme) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+        }
     }
 
     override fun onResumeFragments() {
@@ -72,6 +77,7 @@ class MainActivity : AppCompatActivity() {
         menuInflater.inflate(R.menu.main_menu, menu)
         var updateStatusTheme = menu?.findItem(R.id.change_theme)
         updateStatusTheme?.setChecked(setTheme)
+
         return super.onCreateOptionsMenu(menu)
 
 
@@ -84,8 +90,7 @@ class MainActivity : AppCompatActivity() {
             R.id.change_theme -> {
                 item.isChecked = !item.isChecked
                 saveStatusTheme(item.isChecked)
-
-                this.recreate()
+                setDarkLightTheme(item.isChecked )
                 return true
             }
         }

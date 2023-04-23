@@ -13,11 +13,12 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.translator.R
 import com.translator.databinding.FragmentMainBinding
+import com.translator.domain.base.BaseFragment
+import com.translator.domain.base.View
 import com.translator.model.data.AppState
 import com.translator.model.data.DataModel
+import com.translator.presenter.MainFragmentPresenterImpl
 import com.translator.presenter.Presenter
-import com.translator.view.base.BaseFragment
-import com.translator.view.base.View
 import com.translator.view.main.adapter.MainAdapter
 
 
@@ -28,6 +29,8 @@ class MainFragment : BaseFragment<AppState>() {
         get() = _binding!!
 
     private var adapter: MainAdapter? = null
+
+
     private val onListItemClickListener: MainAdapter.OnListItemClickListener =
         object : MainAdapter.OnListItemClickListener {
             override fun onItemClick(data: DataModel) {
@@ -98,6 +101,10 @@ override fun searchListener(){
             adapter!!.setData(dataModel)
         }
     }
+
+
+
+
 
 
     override fun showErrorScreen(error: String?) {

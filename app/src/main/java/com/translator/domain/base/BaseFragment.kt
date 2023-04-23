@@ -1,4 +1,4 @@
-package com.translator.view.base
+package com.translator.domain.base
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment

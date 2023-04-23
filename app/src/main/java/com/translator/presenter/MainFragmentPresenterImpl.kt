@@ -1,13 +1,13 @@
-package com.translator.view.main
+package com.translator.presenter
 
 
 import com.translator.model.data.AppState
 import com.translator.model.datasource.DataSourceLocal
 import com.translator.model.datasource.DataSourceRemote
 import com.translator.model.repository.RepositoryImplementation
-import com.translator.presenter.Presenter
 import com.translator.rx.SchedulerProvider
-import com.translator.view.base.View
+import com.translator.domain.base.View
+import com.translator.domain.MainInteractor
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.observers.DisposableObserver
 

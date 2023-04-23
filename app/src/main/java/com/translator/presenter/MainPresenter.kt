@@ -1,4 +1,4 @@
-package com.translator.view.main
+package com.translator.presenter
 
 import com.github.terrakok.cicerone.Router
 import com.translator.navigation.IScreens

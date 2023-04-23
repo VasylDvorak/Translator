@@ -1,4 +1,4 @@
-package com.translator.view.main
+package com.translator.presenter
 
 interface BackButtonListener {
     fun backPressed(): Boolean
