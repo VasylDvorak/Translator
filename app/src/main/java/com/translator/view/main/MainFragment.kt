@@ -4,6 +4,7 @@ package com.translator.view.main
 import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.View.AUTOFILL_TYPE_LIST
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
