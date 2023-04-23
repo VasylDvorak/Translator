@@ -11,4 +11,6 @@
     <string name="search_space">search space</string>
     <string name="dark_theme">Dark theme</string>
     <string name="search_word">search word</string>
+    <string name="header">Header</string>
+    <string name="transcription">[transcription]</string>
 </resources>

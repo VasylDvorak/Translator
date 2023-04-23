@@ -10,6 +10,11 @@
         <item name="android:textSize">@dimen/text_size_standard_header</item>
         <item name="android:textStyle">bold</item>
     </style>
+    <style name="TranscriptionTextStyle" parent="BaseTextStyle">
+        <item name="android:textColor">@android:color/holo_orange_dark</item>
+        <item name="android:textSize">@dimen/text_size_standard_header</item>
+        <item name="android:textStyle">italic</item>
+    </style>
 
     <style name="TextViewButtonStyle" parent="BaseTextStyle">
         <item name="android:textColor">@color/colorAccent</item>

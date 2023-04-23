@@ -1,7 +1,7 @@
 package com.translator.view.main
 
 
-
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View.GONE
@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.gson.Gson
 import com.translator.R
 import com.translator.databinding.FragmentMainBinding
 import com.translator.domain.base.BaseFragment
@@ -21,6 +22,7 @@ import com.translator.presenter.MainFragmentPresenterImpl
 import com.translator.presenter.Presenter
 import com.translator.view.main.adapter.MainAdapter
 
+private const val LIST_KEY = "list_key"
 
 class MainFragment : BaseFragment<AppState>() {
 
@@ -47,35 +49,36 @@ class MainFragment : BaseFragment<AppState>() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): android.view.View {
-
         _binding = FragmentMainBinding.inflate(inflater, container, false)
-
         return binding.root
 
     }
 
     override fun onViewCreated(view: android.view.View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        val jsonStringList = activity?.getPreferences(Context.MODE_PRIVATE)?.getString(LIST_KEY, "")
+        if (!jsonStringList.equals("")) {
+            val ListFromJson = Gson().fromJson(jsonStringList, Array<DataModel>::class.java).asList()
+            responseHasData(ListFromJson)
+        }
         searchListener()
     }
 
 
-override fun searchListener(){
-    binding.apply {
+    override fun searchListener() {
+        binding.apply {
 
-        inputLayout.setEndIconOnClickListener {
+            inputLayout.setEndIconOnClickListener {
 
-            var searchWord:String? = inputEditText.text.toString()
-            presenter.getData(searchWord!!, true)
-            inputEditText.text=null
-            wikipediaMotion.transitionToStart()
-            ViewCompat.getWindowInsetsController(requireView())?.hide(WindowInsetsCompat.Type.ime())
+                var searchWord: String? = inputEditText.text.toString()
+                presenter.getData(searchWord!!, true)
+                inputEditText.text = null
+                searchMotion.transitionToStart()
+                ViewCompat.getWindowInsetsController(requireView())
+                    ?.hide(WindowInsetsCompat.Type.ime())
+            }
         }
-
     }
-
-}
 
 
     override fun onDestroyView() {
@@ -89,7 +92,7 @@ override fun searchListener(){
     }
 
     override fun responseHasData(dataModel: List<DataModel>) {
-
+        saveListForAdapter(dataModel)
         showViewSuccess()
 
         if (adapter == null) {
@@ -102,9 +105,15 @@ override fun searchListener(){
         }
     }
 
+    private fun saveListForAdapter(dataModel: List<DataModel>) {
 
+        var jsonStr = Gson().toJson(dataModel)
 
-
+        with(activity?.getPreferences(Context.MODE_PRIVATE)?.edit()) {
+            this?.putString(LIST_KEY, jsonStr)
+            this?.apply()
+        }
+    }
 
 
     override fun showErrorScreen(error: String?) {
