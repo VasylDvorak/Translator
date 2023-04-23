@@ -6,7 +6,7 @@ import com.translator.di.application_modules.AppModule
 import com.translator.di.application_modules.CiceroneModule
 import com.translator.model.datasource.RetrofitImplementation
 import com.translator.view.main.MainActivity
-import com.translator.view.main.MainPresenter
+import com.translator.presenter.MainPresenter
 import dagger.Component
 import javax.inject.Singleton
 

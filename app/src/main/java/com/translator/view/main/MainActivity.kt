@@ -3,7 +3,6 @@ package com.translator.view.main
 import android.content.Context
 import android.os.Bundle
 import android.view.Menu
-import android.view.MenuInflater
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -12,6 +11,8 @@ import com.github.terrakok.cicerone.androidx.AppNavigator
 import com.translator.R
 import com.translator.application.App
 import com.translator.databinding.ActivityMainBinding
+import com.translator.presenter.BackButtonListener
+import com.translator.presenter.MainPresenter
 import javax.inject.Inject
 import kotlin.properties.Delegates
 

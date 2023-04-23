@@ -15,9 +15,10 @@ import com.translator.R
 import com.translator.databinding.FragmentMainBinding
 import com.translator.model.data.AppState
 import com.translator.model.data.DataModel
+import com.translator.presenter.MainFragmentPresenterImpl
 import com.translator.presenter.Presenter
-import com.translator.view.base.BaseFragment
-import com.translator.view.base.View
+import com.translator.domain.base.BaseFragment
+import com.translator.domain.base.View
 import com.translator.view.main.adapter.MainAdapter
 
 
