@@ -32,7 +32,7 @@ class MainFragment : BaseFragment<AppState>() {
         get() = _binding!!
 
     private var adapter: MainAdapter? = null
-
+    private var savedDataModel: MutableList<DataModel> = mutableListOf()
 
     private val onListItemClickListener: MainAdapter.OnListItemClickListener =
         object : MainAdapter.OnListItemClickListener {
@@ -53,6 +53,11 @@ class MainFragment : BaseFragment<AppState>() {
         _binding = FragmentMainBinding.inflate(inflater, container, false)
         return binding.root
 
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        saveListForAdapter(savedDataModel)
     }
 
     override fun onViewCreated(view: android.view.View, savedInstanceState: Bundle?) {
@@ -93,7 +98,7 @@ class MainFragment : BaseFragment<AppState>() {
     }
 
     override fun responseHasData(dataModel: List<DataModel>) {
-        saveListForAdapter(dataModel)
+        savedDataModel=dataModel.toMutableList()
         showViewSuccess()
 
         if (adapter == null) {
