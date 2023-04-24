@@ -12,4 +12,5 @@
     <color name="color_white">#FFFFFF</color>
     <color name="color_gray">#66000000</color>
     <color name="search_icon_color">#9C27B0</color>
+    <color name="card_color">#CEE8F8</color>
 </resources>
