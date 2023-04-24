@@ -2,9 +2,11 @@ package com.translator.view.main
 
 
 import android.content.Context
+import android.media.AudioManager
+import android.media.MediaPlayer
+import android.media.MediaPlayer.OnCompletionListener
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.View.AUTOFILL_TYPE_LIST
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
@@ -13,7 +15,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.gson.Gson
-import com.translator.R
 import com.translator.databinding.FragmentMainBinding
 import com.translator.domain.base.BaseFragment
 import com.translator.domain.base.View
@@ -22,6 +23,8 @@ import com.translator.model.data.DataModel
 import com.translator.presenter.MainFragmentPresenterImpl
 import com.translator.presenter.Presenter
 import com.translator.view.main.adapter.MainAdapter
+import java.io.IOException
+
 
 private const val LIST_KEY = "list_key"
 
@@ -31,6 +34,8 @@ class MainFragment : BaseFragment<AppState>() {
     private val binding
         get() = _binding!!
 
+    var mMediaPlayer: MediaPlayer? = null
+
     private var adapter: MainAdapter? = null
     private var savedDataModel: MutableList<DataModel> = mutableListOf()
 
@@ -38,6 +43,13 @@ class MainFragment : BaseFragment<AppState>() {
         object : MainAdapter.OnListItemClickListener {
             override fun onItemClick(data: DataModel) {
                 Toast.makeText(context, data.text, Toast.LENGTH_SHORT).show()
+            }
+        }
+
+    private val playArticulationClickListener: MainAdapter.OnPlayArticulationClickListener =
+        object : MainAdapter.OnPlayArticulationClickListener {
+            override fun onPlayClick(url: String) {
+                playContentUrl(url)
             }
         }
 
@@ -64,7 +76,8 @@ class MainFragment : BaseFragment<AppState>() {
         super.onViewCreated(view, savedInstanceState)
         val jsonStringList = activity?.getPreferences(Context.MODE_PRIVATE)?.getString(LIST_KEY, "")
         if (!jsonStringList.equals("")) {
-            val ListFromJson = Gson().fromJson(jsonStringList, Array<DataModel>::class.java).asList()
+            val ListFromJson =
+                Gson().fromJson(jsonStringList, Array<DataModel>::class.java).asList()
             responseHasData(ListFromJson)
         }
         searchListener()
@@ -90,22 +103,27 @@ class MainFragment : BaseFragment<AppState>() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        if (mMediaPlayer?.isPlaying == true) {
+            mMediaPlayer?.stop()
+            mMediaPlayer?.release()
+            mMediaPlayer = null
+        }
     }
 
     override fun responseEmpty() {
 
-        showErrorScreen(getString(R.string.empty_server_response_on_success))
+        showErrorScreen(getString(com.translator.R.string.empty_server_response_on_success))
     }
 
     override fun responseHasData(dataModel: List<DataModel>) {
-        savedDataModel=dataModel.toMutableList()
+        savedDataModel = dataModel.toMutableList()
         showViewSuccess()
 
         if (adapter == null) {
             binding.mainActivityRecyclerview.layoutManager =
                 LinearLayoutManager(context)
             binding.mainActivityRecyclerview.adapter =
-                MainAdapter(onListItemClickListener, dataModel)
+                MainAdapter(onListItemClickListener, playArticulationClickListener, dataModel)
         } else {
             adapter!!.setData(dataModel)
         }
@@ -125,7 +143,7 @@ class MainFragment : BaseFragment<AppState>() {
     override fun showErrorScreen(error: String?) {
 
         showViewError()
-        binding.errorTextview.text = error ?: getString(R.string.undefined_error)
+        binding.errorTextview.text = error ?: getString(com.translator.R.string.undefined_error)
         binding.reloadButton.setOnClickListener {
             presenter.getData("hi", true)
         }
@@ -162,6 +180,22 @@ class MainFragment : BaseFragment<AppState>() {
         binding.loadingFrameLayout.visibility = GONE
         binding.errorLinearLayout.visibility = VISIBLE
     }
+
+    fun playContentUrl(url: String) {
+        mMediaPlayer = MediaPlayer()
+        mMediaPlayer?.apply {
+            try {
+                setDataSource(url)
+                setAudioStreamType(AudioManager.STREAM_MUSIC)
+                setOnPreparedListener { start() }
+                prepareAsync()
+            } catch (exception: IOException) {
+                release()
+                null
+            }
+        }
+    }
+
 
     companion object {
         fun newInstance() = MainFragment()

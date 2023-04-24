@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.appcompat.widget.AppCompatImageButton
 import androidx.recyclerview.widget.RecyclerView
 import com.translator.R
 import com.translator.model.data.DataModel
@@ -11,6 +12,7 @@ import com.translator.model.data.DataModel
 
 class MainAdapter(
     private var onListItemClickListener: OnListItemClickListener,
+    private var playArticulationClickListener: OnPlayArticulationClickListener,
     private var data: List<DataModel>
 ) : RecyclerView.Adapter<MainAdapter.RecyclerItemViewHolder>() {
 
@@ -40,19 +42,25 @@ class MainAdapter(
         fun bind(data: DataModel) {
             if (layoutPosition != RecyclerView.NO_POSITION) {
                 itemView.apply {
-                findViewById<TextView>(R.id.header_textview_recycler_item).text = data.text
+                    findViewById<TextView>(R.id.header_textview_recycler_item).text = data.text
 
-                findViewById<TextView>(R.id.description_textview_recycler_item).text =
-                    data.meanings?.get(0)?.translation?.translation
+                    findViewById<TextView>(R.id.description_textview_recycler_item).text =
+                        data.meanings?.get(0)?.translation?.translation
 
-                findViewById<TextView>(R.id.transcription_textview_recycler_item).text =
-                    "["+data.meanings?.get(0)?.transcription+"]"
+                    findViewById<TextView>(R.id.transcription_textview_recycler_item).text =
+                        "[" + data.meanings?.get(0)?.transcription + "]"
 
-                setOnClickListener { openInNewWindow(data) }
-
+                    setOnClickListener { openInNewWindow(data) }
+                    findViewById<AppCompatImageButton>(R.id.play_articulation).setOnClickListener {
+                        data.meanings?.get(0)?.soundUrl?.let { sound_url ->
+                            playArticulationClickListener.onPlayClick(
+                                sound_url
+                            )
+                        }
+                    }
+                }
             }
         }
-    }
     }
 
     private fun openInNewWindow(listItemData: DataModel) {
@@ -62,5 +70,9 @@ class MainAdapter(
 
     interface OnListItemClickListener {
         fun onItemClick(data: DataModel)
+    }
+
+    interface OnPlayArticulationClickListener {
+        fun onPlayClick(url: String)
     }
 }
