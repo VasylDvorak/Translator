@@ -1,6 +1,6 @@
 package com.translator.di.application_modules
 
-import com.translator.view.main.MainFragment
+import com.translator.view.MainFragment
 import dagger.Module
 import dagger.android.ContributesAndroidInjector
 

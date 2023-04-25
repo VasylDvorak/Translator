@@ -2,7 +2,7 @@ package com.translator.di.application_modules
 
 import com.translator.model.data.DataModel
 import com.translator.model.repository.Repository
-import com.translator.view.main.MainInteractor
+import com.translator.view.MainInteractor
 import dagger.Module
 import dagger.Provides
 import javax.inject.Named

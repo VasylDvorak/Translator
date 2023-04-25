@@ -1,12 +1,9 @@
-package com.translator.view.main
+package com.translator.view
 
 import androidx.lifecycle.LiveData
-import com.translator.domain.base.View
 import com.translator.model.data.AppState
-import com.translator.model.data.DataModel
 import com.translator.utils.parseSearchResults
 import com.translator.viewmodel.BaseViewModel
-import io.reactivex.rxjava3.core.Observer
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.observers.DisposableObserver
 import javax.inject.Inject

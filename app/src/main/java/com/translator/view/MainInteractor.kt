@@ -1,4 +1,4 @@
-package com.translator.view.main
+package com.translator.view
 
 import com.translator.di.application_modules.NAME_LOCAL
 import com.translator.di.application_modules.NAME_REMOTE

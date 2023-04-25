@@ -1,16 +1,15 @@
 package com.translator.domain.base
 
 import android.os.Bundle
-import android.os.PersistableBundle
 import androidx.fragment.app.Fragment
 import com.translator.R
 import com.translator.application.App
 import com.translator.model.data.AppState
-import com.translator.model.data.DataModel
 import com.translator.utils.network.isOnline
 import com.translator.utils.ui.AlertDialogFragment
 import com.translator.viewmodel.BaseViewModel
 import com.translator.viewmodel.Interactor
+import dagger.android.support.AndroidSupportInjection
 
 abstract class BaseFragment<T : AppState, I : Interactor<T>> : Fragment(), View {
 
@@ -19,13 +18,13 @@ abstract class BaseFragment<T : AppState, I : Interactor<T>> : Fragment(), View 
     protected var isNetworkAvailable: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        AndroidSupportInjection.inject(this)
         super.onCreate(savedInstanceState)
         isNetworkAvailable = isOnline(App.instance.applicationContext)
     }
 
     override fun onResume() {
         super.onResume()
-        isNetworkAvailable = isOnline(App.instance.applicationContext)
         if (!isNetworkAvailable && isDialogNull()) {
             showNoInternetConnectionDialog()
         }

@@ -1,4 +1,4 @@
-package com.translator.view.main
+package com.translator.view
 
 
 import android.content.Context
@@ -23,8 +23,7 @@ import com.translator.domain.base.BaseFragment
 import com.translator.model.data.AppState
 import com.translator.model.data.DataModel
 import com.translator.utils.network.isOnline
-import com.translator.view.main.adapter.MainAdapter
-import dagger.android.support.AndroidSupportInjection
+import com.translator.view.adapter.MainAdapter
 import java.io.IOException
 import javax.inject.Inject
 
@@ -32,6 +31,8 @@ import javax.inject.Inject
 private const val LIST_KEY = "list_key"
 
 class MainFragment : BaseFragment<AppState, MainInteractor>() {
+
+
     @Inject
     internal lateinit var viewModelFactory: ViewModelProvider.Factory
     override lateinit var model: MainViewModel
@@ -61,11 +62,12 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
             }
         }
 
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): android.view.View {
+        model = viewModelFactory.create(MainViewModel::class.java)
+        model.subscribe().observe(viewLifecycleOwner, observer)
         _binding = FragmentMainBinding.inflate(inflater, container, false)
         return binding.root
 
@@ -77,12 +79,10 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
     }
 
     override fun onViewCreated(view: android.view.View, savedInstanceState: Bundle?) {
-        AndroidSupportInjection.inject(this)
 
         super.onViewCreated(view, savedInstanceState)
 
-        model = viewModelFactory.create(MainViewModel::class.java)
-        model.subscribe().observe(viewLifecycleOwner, observer)
+
 
         model.getRestoredData()?.let { renderData(it) }
 
@@ -90,7 +90,7 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
         if (!jsonStringList.equals("")) {
             val ListFromJson =
                 Gson().fromJson(jsonStringList, Array<DataModel>::class.java).asList()
-            updateAdapter(ListFromJson)
+                updateAdapter(ListFromJson)
         }
 
         searchListener()

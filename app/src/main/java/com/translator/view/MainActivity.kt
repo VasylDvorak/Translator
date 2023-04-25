@@ -1,4 +1,4 @@
-package com.translator.view.main
+package com.translator.view
 
 import android.content.Context
 import android.os.Bundle
@@ -13,7 +13,6 @@ import com.translator.application.App
 import com.translator.databinding.ActivityMainBinding
 import com.translator.presenter.BackButtonListener
 import com.translator.presenter.MainPresenter
-import dagger.android.AndroidInjection
 import javax.inject.Inject
 import kotlin.properties.Delegates
 

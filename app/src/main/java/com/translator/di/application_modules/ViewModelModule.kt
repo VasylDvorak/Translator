@@ -2,7 +2,7 @@ package com.translator.di.application_modules
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.translator.view.main.MainViewModel
+import com.translator.view.MainViewModel
 import dagger.Binds
 import dagger.Module
 import dagger.multibindings.IntoMap

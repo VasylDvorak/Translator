@@ -11,9 +11,9 @@ import com.translator.di.application_modules.InteractorModule
 import com.translator.di.application_modules.RepositoryModule
 import com.translator.di.application_modules.ViewModelModule
 import com.translator.model.datasource.RetrofitImplementation
-import com.translator.view.main.MainActivity
+import com.translator.view.MainActivity
 import com.translator.presenter.MainPresenter
-import com.translator.view.main.MainFragment
+import com.translator.view.MainFragment
 import dagger.BindsInstance
 import dagger.Component
 import dagger.android.support.AndroidSupportInjectionModule
