@@ -1,10 +1,8 @@
 package com.translator.utils
 
-import com.google.gson.annotations.SerializedName
 import com.translator.model.data.AppState
 import com.translator.model.data.DataModel
 import com.translator.model.data.Meanings
-import com.translator.model.data.Translation
 
 
 fun parseSearchResults(state: AppState): AppState {
@@ -42,14 +40,4 @@ private fun parseResult(dataModel: DataModel, newDataModels: ArrayList<DataModel
     }
 }
 
-fun convertMeaningsToString(meanings: List<Meanings>): String {
-    var meaningsSeparatedByComma = String()
-    for ((index, meaning) in meanings.withIndex()) {
-        meaningsSeparatedByComma += if (index + 1 != meanings.size) {
-            String.format("%s%s", meaning.translation?.translation, ", ")
-        } else {
-            meaning.translation?.translation
-        }
-    }
-    return meaningsSeparatedByComma
-}
+

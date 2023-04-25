@@ -11,18 +11,22 @@ import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.observers.DisposableObserver
 import javax.inject.Inject
 
+private const val QUERY = "query"
 
-class MainViewModel @Inject constructor (private val interactor: MainInteractor)
-    : BaseViewModel<AppState>() {
+class MainViewModel @Inject constructor(private val interactor: MainInteractor) :
+    BaseViewModel<AppState>() {
 
     private var appState: AppState? = null
 
 
-    fun subscribe (): LiveData<AppState> {
+    fun subscribe(): LiveData<AppState> {
         return liveDataForViewToObserve
     }
 
-
+    fun getRestoredData(): AppState? = savedStateHandle[QUERY]
+    fun setQuery(query: AppState) {
+        savedStateHandle[QUERY] = query
+    }
 
     override fun getData(word: String, isOnline: Boolean): LiveData<AppState> {
         compositeDisposable.add(
@@ -35,46 +39,9 @@ class MainViewModel @Inject constructor (private val interactor: MainInteractor)
         return super.getData(word, isOnline)
     }
 
-//    override fun getData(word: String, isOnline: Boolean): LiveData<List<DataModel>> {
-//        currentView?.showViewLoading()
-//        compositeDisposable.add(
-//            interactor.getData(word, isOnline)
-//                .subscribeOn(schedulerProvider.io())
-//                .observeOn(schedulerProvider.ui())
-//                .doOnSubscribe { doOnSubscribe() }
-//                .subscribeWith(getObserver())
-//        )
-//        return super.getData(word, isOnline)
-//    }
 
-//    private fun doOnSubscribe(): (Disposable) -> Unit =
-//        { currentView?.showViewLoading() }
-//
-//
-//    private fun getObserver(): DisposableObserver<List<DataModel>> {
-//        return object : DisposableObserver<List<DataModel>>() {
-//
-//            override fun onNext(data: List<DataModel>) {
-//                if (data.isEmpty()){
-//                    currentView?.responseEmpty()
-//                }else{
-//                    liveDataForViewToObserve.value = data
-//                }
-//            }
-//
-//            override fun onError(e: Throwable) {
-//                currentView?.showErrorScreen("Ошибка загрузки")
-//            }
-//
-//            override fun onComplete() {
-//            }
-//
-//
-//        }
-//
-//    }
-private fun doOnSubscribe(): (Disposable) -> Unit =
-    { liveDataForViewToObserve.value = AppState.Loading(null) }
+    private fun doOnSubscribe(): (Disposable) -> Unit =
+        { liveDataForViewToObserve.value = AppState.Loading(null) }
 
     private fun getObserver(): DisposableObserver<AppState> {
         return object : DisposableObserver<AppState>() {

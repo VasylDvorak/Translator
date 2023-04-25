@@ -17,10 +17,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.gson.Gson
 import com.translator.R
+import com.translator.application.App
 import com.translator.databinding.FragmentMainBinding
 import com.translator.domain.base.BaseFragment
 import com.translator.model.data.AppState
 import com.translator.model.data.DataModel
+import com.translator.utils.network.isOnline
 import com.translator.view.main.adapter.MainAdapter
 import dagger.android.support.AndroidSupportInjection
 import java.io.IOException
@@ -79,14 +81,18 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
 
         super.onViewCreated(view, savedInstanceState)
 
+        model = viewModelFactory.create(MainViewModel::class.java)
+        model.subscribe().observe(viewLifecycleOwner, observer)
+
+        model.getRestoredData()?.let { renderData(it) }
+
         val jsonStringList = activity?.getPreferences(Context.MODE_PRIVATE)?.getString(LIST_KEY, "")
         if (!jsonStringList.equals("")) {
             val ListFromJson =
                 Gson().fromJson(jsonStringList, Array<DataModel>::class.java).asList()
             updateAdapter(ListFromJson)
         }
-        model = viewModelFactory.create(MainViewModel::class.java)
-        model.subscribe().observe(viewLifecycleOwner, observer)
+
         searchListener()
     }
 
@@ -96,8 +102,16 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
 
             inputLayout.setEndIconOnClickListener {
 
-                var searchWord: String? = inputEditText.text.toString()
-                model.getData(searchWord!!, true)
+                var searchWord: String = inputEditText.text.toString() ?: ""
+
+
+                isNetworkAvailable = isOnline(App.instance.applicationContext)
+                if (isNetworkAvailable) {
+                    model.getData(searchWord, isNetworkAvailable)
+                } else {
+                    showNoInternetConnectionDialog()
+                }
+
                 inputEditText.text = null
                 searchMotion.transitionToStart()
                 ViewCompat.getWindowInsetsController(requireView())
@@ -138,8 +152,8 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
     }
 
 
-
     override fun renderData(appState: AppState) {
+        model.setQuery(appState)
         when (appState) {
             is AppState.Success -> {
                 showViewWorking()
@@ -150,9 +164,11 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
                         getString(R.string.empty_server_response_on_success)
                     )
                 } else {
+
                     updateAdapter(data)
                 }
             }
+
             is AppState.Loading -> {
                 showViewLoading()
                 if (appState.progress != null) {
@@ -164,13 +180,13 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
                     binding.progressBarRound.visibility = VISIBLE
                 }
             }
+
             is AppState.Error -> {
                 showViewWorking()
                 showAlertDialog(getString(R.string.error_stub), appState.error.message)
             }
         }
     }
-
 
 
     private fun saveListForAdapter(dataModel: List<DataModel>) {
@@ -199,7 +215,6 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
     private fun showViewWorking() {
         binding.loadingFrameLayout.visibility = GONE
     }
-
 
 
     private fun showViewSuccess() {

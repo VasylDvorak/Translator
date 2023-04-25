@@ -6,7 +6,6 @@ import com.translator.view.main.MainFragment
 class AndroidScreens : IScreens {
     override fun startMainFragment() = FragmentScreen { MainFragment.newInstance() }
 
-
 }
 
 

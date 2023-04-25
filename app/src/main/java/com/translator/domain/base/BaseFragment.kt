@@ -1,8 +1,5 @@
 package com.translator.domain.base
 
-
-
-
 import android.os.Bundle
 import android.os.PersistableBundle
 import androidx.fragment.app.Fragment
@@ -16,27 +13,6 @@ import com.translator.viewmodel.BaseViewModel
 import com.translator.viewmodel.Interactor
 
 abstract class BaseFragment<T : AppState, I : Interactor<T>> : Fragment(), View {
-
-
-
-   // abstract fun renderData(appState: T)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     abstract val model: BaseViewModel<T>
 
