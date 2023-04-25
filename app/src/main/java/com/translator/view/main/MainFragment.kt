@@ -4,7 +4,6 @@ package com.translator.view.main
 import android.content.Context
 import android.media.AudioManager
 import android.media.MediaPlayer
-import android.media.MediaPlayer.OnCompletionListener
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View.GONE
@@ -13,22 +12,27 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.gson.Gson
 import com.translator.databinding.FragmentMainBinding
 import com.translator.domain.base.BaseFragment
-import com.translator.domain.base.View
-import com.translator.model.data.AppState
 import com.translator.model.data.DataModel
-import com.translator.presenter.MainFragmentPresenterImpl
-import com.translator.presenter.Presenter
 import com.translator.view.main.adapter.MainAdapter
 import java.io.IOException
 
 
 private const val LIST_KEY = "list_key"
 
-class MainFragment : BaseFragment<AppState>() {
+class MainFragment : BaseFragment<List<DataModel>>() {
+
+    override val model: MainViewModel by lazy {
+        ViewModelProvider(this).get(MainViewModel::class.java)
+    }
+
+
+    private val observer = Observer<List<DataModel>> { renderData(it) }
 
     private var _binding: FragmentMainBinding? = null
     private val binding
@@ -53,9 +57,7 @@ class MainFragment : BaseFragment<AppState>() {
             }
         }
 
-    override fun createPresenter(): Presenter<AppState, View> {
-        return MainFragmentPresenterImpl()
-    }
+
 
 
     override fun onCreateView(
@@ -78,7 +80,7 @@ class MainFragment : BaseFragment<AppState>() {
         if (!jsonStringList.equals("")) {
             val ListFromJson =
                 Gson().fromJson(jsonStringList, Array<DataModel>::class.java).asList()
-            responseHasData(ListFromJson)
+            renderData(ListFromJson)
         }
         searchListener()
     }
@@ -90,7 +92,7 @@ class MainFragment : BaseFragment<AppState>() {
             inputLayout.setEndIconOnClickListener {
 
                 var searchWord: String? = inputEditText.text.toString()
-                presenter.getData(searchWord!!, true)
+                model.getData(searchWord!!, true ).observe( viewLifecycleOwner , observer)
                 inputEditText.text = null
                 searchMotion.transitionToStart()
                 ViewCompat.getWindowInsetsController(requireView())
@@ -115,7 +117,9 @@ class MainFragment : BaseFragment<AppState>() {
         showErrorScreen(getString(com.translator.R.string.empty_server_response_on_success))
     }
 
-    override fun responseHasData(dataModel: List<DataModel>) {
+
+
+    override fun renderData(dataModel: List<DataModel>) {
         savedDataModel = dataModel.toMutableList()
         showViewSuccess()
 
@@ -145,7 +149,8 @@ class MainFragment : BaseFragment<AppState>() {
         showViewError()
         binding.errorTextview.text = error ?: getString(com.translator.R.string.undefined_error)
         binding.reloadButton.setOnClickListener {
-            presenter.getData("hi", true)
+            model.getData("hi", true ).observe( viewLifecycleOwner ,
+                observer)
         }
     }
 

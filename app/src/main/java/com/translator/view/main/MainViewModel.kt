@@ -1,90 +1,99 @@
-package com.translator.presenter
+package com.translator.view.main
 
-
+import androidx.lifecycle.LiveData
+import com.translator.domain.MainInteractor
+import com.translator.domain.base.View
 import com.translator.model.data.AppState
+import com.translator.model.data.DataModel
 import com.translator.model.datasource.DataSourceLocal
 import com.translator.model.datasource.DataSourceRemote
 import com.translator.model.repository.RepositoryImplementation
-import com.translator.rx.SchedulerProvider
-import com.translator.domain.base.View
-import com.translator.domain.MainInteractor
-import io.reactivex.rxjava3.disposables.CompositeDisposable
+import com.translator.viewmodel.BaseViewModel
 import io.reactivex.rxjava3.observers.DisposableObserver
 
-class MainFragmentPresenterImpl<T : AppState, V : View>(
+
+class MainViewModel(
     private val interactor: MainInteractor = MainInteractor(
         RepositoryImplementation(DataSourceRemote()),
         RepositoryImplementation(DataSourceLocal())
-    ),
-    protected val compositeDisposable: CompositeDisposable = CompositeDisposable(),
-    protected val schedulerProvider: SchedulerProvider = SchedulerProvider()
-) : Presenter<T, V> {
+    )
+) : BaseViewModel<List<DataModel>>() {
 
-    private var currentView: V? = null
+    private var appState: AppState? = null
 
-    override fun attachView(view: V) {
+    private var currentView: View? = null
+
+    override fun attachView(view: View) {
         if (view != currentView) {
             currentView = view
         }
     }
 
-    override fun detachView(view: V) {
+    override fun detachView(view: View) {
         compositeDisposable.clear()
         if (view == currentView) {
             currentView = null
         }
     }
 
-    override fun getData(word: String, isOnline: Boolean) {
+    override fun getData(word: String, isOnline: Boolean): LiveData<List<DataModel>> {
         compositeDisposable.add(
             interactor.getData(word, isOnline)
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.ui())
-                .doOnSubscribe { currentView?.appStateProgressEmpty() }
+                .doOnSubscribe { currentView?.showViewLoading() }
                 .subscribeWith(getObserver())
         )
+        return super.getData(word, isOnline)
     }
 
     private fun getObserver(): DisposableObserver<AppState> {
         return object : DisposableObserver<AppState>() {
 
-            override fun onNext(appState: AppState) {
+            override fun onNext(state: AppState) {
 
-                when (appState) {
+                when (state) {
                     is AppState.Success -> {
-                        val dataModel = appState.data
+                        val dataModel = state.data
                         if (dataModel == null || dataModel.isEmpty()) {
 
                             currentView?.responseEmpty()
                         } else {
-                            currentView?.responseHasData(dataModel)
+                            appState = state
+                            liveDataForViewToObserve.value = state.data
                         }
                     }
+
                     is AppState.Loading -> {
                         currentView?.showViewLoading()
-                        if (appState.progress != null) {
+                        if (state.progress != null) {
 
-                            currentView?.appStateProgressNotEmpty(appState.progress)
+                            currentView?.appStateProgressNotEmpty(state.progress)
 
                         } else {
                             currentView?.appStateProgressEmpty()
                         }
                     }
                     is AppState.Error -> {
-                        currentView?.showErrorScreen(appState.error.message)
+                        currentView?.showErrorScreen(state.error.message)
                     }
+
                 }
 
             }
 
             override fun onError(e: Throwable) {
 
-                currentView?.showErrorScreen(AppState.Error(e).error.message)
             }
 
             override fun onComplete() {
-
             }
+
+
         }
+
+
     }
+
+
 }

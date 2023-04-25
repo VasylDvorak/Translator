@@ -1,4 +1,4 @@
-package com.translator.presenter
+package com.translator.viewmodel
 
 import io.reactivex.rxjava3.core.Observable
 

@@ -1,29 +1,22 @@
 package com.translator.domain.base
 
-import android.os.Bundle
 import androidx.fragment.app.Fragment
-import com.translator.model.data.AppState
-import com.translator.presenter.Presenter
+import com.translator.model.data.DataModel
+import com.translator.viewmodel.BaseViewModel
 
-abstract class BaseFragment<T : AppState> : Fragment(), View {
+abstract class BaseFragment<T : List<DataModel>> : Fragment(), View {
 
-    protected lateinit var presenter: Presenter<T, View>
+    abstract val model: BaseViewModel<T>
 
-    protected abstract fun createPresenter(): Presenter<T, View>
-
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        presenter = createPresenter()
-    }
+    abstract fun renderData(appState: T)
 
     override fun onStart() {
         super.onStart()
-        presenter.attachView(this)
+        model.attachView(this)
     }
 
     override fun onStop() {
         super.onStop()
-        presenter.detachView(this)
+        model.detachView(this)
     }
 }
