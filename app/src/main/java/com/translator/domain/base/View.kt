@@ -5,10 +5,6 @@ interface View {
 
     fun showViewLoading()
 
-    fun appStateProgressNotEmpty(progress: Int)
-
-    fun appStateProgressEmpty()
-
     fun showErrorScreen(error: String?)
 
     fun searchListener()

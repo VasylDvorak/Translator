@@ -16,23 +16,25 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.gson.Gson
+import com.translator.R
 import com.translator.databinding.FragmentMainBinding
 import com.translator.domain.base.BaseFragment
+import com.translator.model.data.AppState
 import com.translator.model.data.DataModel
 import com.translator.view.main.adapter.MainAdapter
+import dagger.android.support.AndroidSupportInjection
 import java.io.IOException
+import javax.inject.Inject
 
 
 private const val LIST_KEY = "list_key"
 
-class MainFragment : BaseFragment<List<DataModel>>() {
+class MainFragment : BaseFragment<AppState, MainInteractor>() {
+    @Inject
+    internal lateinit var viewModelFactory: ViewModelProvider.Factory
+    override lateinit var model: MainViewModel
 
-    override val model: MainViewModel by lazy {
-        ViewModelProvider(this).get(MainViewModel::class.java)
-    }
-
-
-    private val observer = Observer<List<DataModel>> { renderData(it) }
+    private val observer = Observer<AppState> { renderData(it) }
 
     private var _binding: FragmentMainBinding? = null
     private val binding
@@ -58,8 +60,6 @@ class MainFragment : BaseFragment<List<DataModel>>() {
         }
 
 
-
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -75,13 +75,18 @@ class MainFragment : BaseFragment<List<DataModel>>() {
     }
 
     override fun onViewCreated(view: android.view.View, savedInstanceState: Bundle?) {
+        AndroidSupportInjection.inject(this)
+
         super.onViewCreated(view, savedInstanceState)
+
         val jsonStringList = activity?.getPreferences(Context.MODE_PRIVATE)?.getString(LIST_KEY, "")
         if (!jsonStringList.equals("")) {
             val ListFromJson =
                 Gson().fromJson(jsonStringList, Array<DataModel>::class.java).asList()
-            renderData(ListFromJson)
+            updateAdapter(ListFromJson)
         }
+        model = viewModelFactory.create(MainViewModel::class.java)
+        model.subscribe().observe(viewLifecycleOwner, observer)
         searchListener()
     }
 
@@ -92,7 +97,7 @@ class MainFragment : BaseFragment<List<DataModel>>() {
             inputLayout.setEndIconOnClickListener {
 
                 var searchWord: String? = inputEditText.text.toString()
-                model.getData(searchWord!!, true ).observe( viewLifecycleOwner , observer)
+                model.getData(searchWord!!, true)
                 inputEditText.text = null
                 searchMotion.transitionToStart()
                 ViewCompat.getWindowInsetsController(requireView())
@@ -118,8 +123,7 @@ class MainFragment : BaseFragment<List<DataModel>>() {
     }
 
 
-
-    override fun renderData(dataModel: List<DataModel>) {
+    private fun updateAdapter(dataModel: List<DataModel>) {
         savedDataModel = dataModel.toMutableList()
         showViewSuccess()
 
@@ -132,6 +136,42 @@ class MainFragment : BaseFragment<List<DataModel>>() {
             adapter!!.setData(dataModel)
         }
     }
+
+
+
+    override fun renderData(appState: AppState) {
+        when (appState) {
+            is AppState.Success -> {
+                showViewWorking()
+                val data = appState.data
+                if (data.isNullOrEmpty()) {
+                    showAlertDialog(
+                        getString(R.string.dialog_tittle_sorry),
+                        getString(R.string.empty_server_response_on_success)
+                    )
+                } else {
+                    updateAdapter(data)
+                }
+            }
+            is AppState.Loading -> {
+                showViewLoading()
+                if (appState.progress != null) {
+                    binding.progressBarHorizontal.visibility = VISIBLE
+                    binding.progressBarRound.visibility = GONE
+                    binding.progressBarHorizontal.progress = appState.progress
+                } else {
+                    binding.progressBarHorizontal.visibility = GONE
+                    binding.progressBarRound.visibility = VISIBLE
+                }
+            }
+            is AppState.Error -> {
+                showViewWorking()
+                showAlertDialog(getString(R.string.error_stub), appState.error.message)
+            }
+        }
+    }
+
+
 
     private fun saveListForAdapter(dataModel: List<DataModel>) {
 
@@ -149,10 +189,18 @@ class MainFragment : BaseFragment<List<DataModel>>() {
         showViewError()
         binding.errorTextview.text = error ?: getString(com.translator.R.string.undefined_error)
         binding.reloadButton.setOnClickListener {
-            model.getData("hi", true ).observe( viewLifecycleOwner ,
-                observer)
+            model.getData("hi", true).observe(
+                viewLifecycleOwner,
+                observer
+            )
         }
     }
+
+    private fun showViewWorking() {
+        binding.loadingFrameLayout.visibility = GONE
+    }
+
+
 
     private fun showViewSuccess() {
 
@@ -167,18 +215,6 @@ class MainFragment : BaseFragment<List<DataModel>>() {
         binding.errorLinearLayout.visibility = GONE
     }
 
-    override fun appStateProgressNotEmpty(progress: Int) {
-        binding.successLinearLayout.visibility = GONE
-        binding.progressBarHorizontal.visibility = VISIBLE
-        binding.progressBarRound.visibility = GONE
-        binding.progressBarHorizontal.progress = progress
-    }
-
-    override fun appStateProgressEmpty() {
-        binding.successLinearLayout.visibility = GONE
-        binding.progressBarHorizontal.visibility = GONE
-        binding.progressBarRound.visibility = VISIBLE
-    }
 
     private fun showViewError() {
         binding.successLinearLayout.visibility = GONE

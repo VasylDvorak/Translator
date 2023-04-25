@@ -13,6 +13,7 @@ import com.translator.application.App
 import com.translator.databinding.ActivityMainBinding
 import com.translator.presenter.BackButtonListener
 import com.translator.presenter.MainPresenter
+import dagger.android.AndroidInjection
 import javax.inject.Inject
 import kotlin.properties.Delegates
 
@@ -34,7 +35,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setTheme = this.getPreferences(Context.MODE_PRIVATE).getBoolean(THEME_KEY, false)
         setDarkLightTheme(setTheme)
 

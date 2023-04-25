@@ -1,99 +1,96 @@
 package com.translator.view.main
 
 import androidx.lifecycle.LiveData
-import com.translator.domain.MainInteractor
 import com.translator.domain.base.View
 import com.translator.model.data.AppState
 import com.translator.model.data.DataModel
-import com.translator.model.datasource.DataSourceLocal
-import com.translator.model.datasource.DataSourceRemote
-import com.translator.model.repository.RepositoryImplementation
+import com.translator.utils.parseSearchResults
 import com.translator.viewmodel.BaseViewModel
+import io.reactivex.rxjava3.core.Observer
+import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.observers.DisposableObserver
+import javax.inject.Inject
 
 
-class MainViewModel(
-    private val interactor: MainInteractor = MainInteractor(
-        RepositoryImplementation(DataSourceRemote()),
-        RepositoryImplementation(DataSourceLocal())
-    )
-) : BaseViewModel<List<DataModel>>() {
+class MainViewModel @Inject constructor (private val interactor: MainInteractor)
+    : BaseViewModel<AppState>() {
 
     private var appState: AppState? = null
 
-    private var currentView: View? = null
 
-    override fun attachView(view: View) {
-        if (view != currentView) {
-            currentView = view
-        }
+    fun subscribe (): LiveData<AppState> {
+        return liveDataForViewToObserve
     }
 
-    override fun detachView(view: View) {
-        compositeDisposable.clear()
-        if (view == currentView) {
-            currentView = null
-        }
-    }
 
-    override fun getData(word: String, isOnline: Boolean): LiveData<List<DataModel>> {
+
+    override fun getData(word: String, isOnline: Boolean): LiveData<AppState> {
         compositeDisposable.add(
             interactor.getData(word, isOnline)
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.ui())
-                .doOnSubscribe { currentView?.showViewLoading() }
+                .doOnSubscribe(doOnSubscribe())
                 .subscribeWith(getObserver())
         )
         return super.getData(word, isOnline)
     }
 
+//    override fun getData(word: String, isOnline: Boolean): LiveData<List<DataModel>> {
+//        currentView?.showViewLoading()
+//        compositeDisposable.add(
+//            interactor.getData(word, isOnline)
+//                .subscribeOn(schedulerProvider.io())
+//                .observeOn(schedulerProvider.ui())
+//                .doOnSubscribe { doOnSubscribe() }
+//                .subscribeWith(getObserver())
+//        )
+//        return super.getData(word, isOnline)
+//    }
+
+//    private fun doOnSubscribe(): (Disposable) -> Unit =
+//        { currentView?.showViewLoading() }
+//
+//
+//    private fun getObserver(): DisposableObserver<List<DataModel>> {
+//        return object : DisposableObserver<List<DataModel>>() {
+//
+//            override fun onNext(data: List<DataModel>) {
+//                if (data.isEmpty()){
+//                    currentView?.responseEmpty()
+//                }else{
+//                    liveDataForViewToObserve.value = data
+//                }
+//            }
+//
+//            override fun onError(e: Throwable) {
+//                currentView?.showErrorScreen("Ошибка загрузки")
+//            }
+//
+//            override fun onComplete() {
+//            }
+//
+//
+//        }
+//
+//    }
+private fun doOnSubscribe(): (Disposable) -> Unit =
+    { liveDataForViewToObserve.value = AppState.Loading(null) }
+
     private fun getObserver(): DisposableObserver<AppState> {
         return object : DisposableObserver<AppState>() {
 
             override fun onNext(state: AppState) {
-
-                when (state) {
-                    is AppState.Success -> {
-                        val dataModel = state.data
-                        if (dataModel == null || dataModel.isEmpty()) {
-
-                            currentView?.responseEmpty()
-                        } else {
-                            appState = state
-                            liveDataForViewToObserve.value = state.data
-                        }
-                    }
-
-                    is AppState.Loading -> {
-                        currentView?.showViewLoading()
-                        if (state.progress != null) {
-
-                            currentView?.appStateProgressNotEmpty(state.progress)
-
-                        } else {
-                            currentView?.appStateProgressEmpty()
-                        }
-                    }
-                    is AppState.Error -> {
-                        currentView?.showErrorScreen(state.error.message)
-                    }
-
-                }
-
+                appState = parseSearchResults(state)
+                liveDataForViewToObserve.value = appState
             }
 
             override fun onError(e: Throwable) {
-
+                liveDataForViewToObserve.value = AppState.Error(e)
             }
 
             override fun onComplete() {
             }
-
-
         }
-
-
     }
-
 
 }

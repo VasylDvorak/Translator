@@ -1,9 +1,7 @@
 package com.translator.view.main.adapter
 
-import android.media.MediaPlayer
 import android.view.LayoutInflater
 import android.view.View
-import android.view.View.OnClickListener
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.widget.AppCompatImageButton
