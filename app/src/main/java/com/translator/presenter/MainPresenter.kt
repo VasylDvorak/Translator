@@ -1,6 +1,8 @@
 package com.translator.presenter
 
+import com.github.terrakok.cicerone.Cicerone
 import com.github.terrakok.cicerone.Router
+import com.translator.navigation.AndroidScreens
 import com.translator.navigation.IScreens
 
 import javax.inject.Inject
@@ -15,6 +17,7 @@ class MainPresenter
     fun mainFragmentStart () {
 
         router.replaceScreen(screens.startMainFragment())
+
     }
 
     fun backClicked () {

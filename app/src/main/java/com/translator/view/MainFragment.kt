@@ -142,10 +142,11 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
         showViewSuccess()
 
         if (adapter == null) {
-            binding.mainActivityRecyclerview.layoutManager =
-                LinearLayoutManager(context)
-            binding.mainActivityRecyclerview.adapter =
-                MainAdapter(onListItemClickListener, playArticulationClickListener, dataModel)
+
+            binding.mainActivityRecyclerview.layoutManager = LinearLayoutManager(context)
+            adapter = MainAdapter(onListItemClickListener, playArticulationClickListener, dataModel)
+            binding.mainActivityRecyclerview.adapter=adapter
+
         } else {
             adapter!!.setData(dataModel)
         }
