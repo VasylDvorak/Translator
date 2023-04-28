@@ -13,28 +13,23 @@ import android.widget.Toast
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.gson.Gson
 import com.translator.R
-import com.translator.application.App
 import com.translator.databinding.FragmentMainBinding
 import com.translator.domain.base.BaseFragment
 import com.translator.model.data.AppState
 import com.translator.model.data.DataModel
 import com.translator.utils.network.isOnline
 import com.translator.view.adapter.MainAdapter
+import org.koin.android.ext.android.getKoin
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.IOException
-import javax.inject.Inject
-
 
 private const val LIST_KEY = "list_key"
 
 class MainFragment : BaseFragment<AppState, MainInteractor>() {
 
-
-    @Inject
-    internal lateinit var viewModelFactory: ViewModelProvider.Factory
     override lateinit var model: MainViewModel
 
     private val observer = Observer<AppState> { renderData(it) }
@@ -66,8 +61,7 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): android.view.View {
-        model = viewModelFactory.create(MainViewModel::class.java)
-        model.subscribe().observe(viewLifecycleOwner, observer)
+
         _binding = FragmentMainBinding.inflate(inflater, container, false)
         return binding.root
 
@@ -82,8 +76,8 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
 
         super.onViewCreated(view, savedInstanceState)
 
-
-
+        initViewModel()
+        initViews()
         model.getRestoredData()?.let { renderData(it) }
 
         val jsonStringList = activity?.getPreferences(Context.MODE_PRIVATE)?.getString(LIST_KEY, "")
@@ -97,6 +91,25 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
     }
 
 
+    private fun initViewModel() {
+        if (binding.mainActivityRecyclerview.adapter != null) {
+            throw IllegalStateException("The ViewModel should be initialised first")
+        }
+        val viewModel: MainViewModel by viewModel()
+        model = viewModel
+        model.subscribe().observe(viewLifecycleOwner, observer)
+    }
+
+    private fun initViews() {
+        if (adapter == null) {
+            binding.mainActivityRecyclerview.layoutManager =
+                LinearLayoutManager(context)
+            adapter = MainAdapter(onListItemClickListener, playArticulationClickListener)
+            binding.mainActivityRecyclerview.adapter=adapter
+        }
+    }
+
+
     override fun searchListener() {
         binding.apply {
 
@@ -105,7 +118,7 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
                 var searchWord: String = inputEditText.text.toString() ?: ""
 
 
-                isNetworkAvailable = isOnline(App.instance.applicationContext)
+                isNetworkAvailable = isOnline(getKoin().get())
                 if (isNetworkAvailable) {
                     model.getData(searchWord, isNetworkAvailable)
                 } else {
@@ -138,17 +151,10 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
 
 
     private fun updateAdapter(dataModel: List<DataModel>) {
+
         savedDataModel = dataModel.toMutableList()
         showViewSuccess()
-
-        if (adapter == null) {
-            binding.mainActivityRecyclerview.layoutManager =
-                LinearLayoutManager(context)
-            binding.mainActivityRecyclerview.adapter =
-                MainAdapter(onListItemClickListener, playArticulationClickListener, dataModel)
-        } else {
-            adapter!!.setData(dataModel)
-        }
+        adapter?.setData(dataModel)
     }
 
 

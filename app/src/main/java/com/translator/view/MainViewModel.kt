@@ -6,11 +6,11 @@ import com.translator.utils.parseSearchResults
 import com.translator.viewmodel.BaseViewModel
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.observers.DisposableObserver
-import javax.inject.Inject
+
 
 private const val QUERY = "query"
 
-class MainViewModel @Inject constructor(private val interactor: MainInteractor) :
+class MainViewModel (private val interactor: MainInteractor) :
     BaseViewModel<AppState>() {
 
     private var appState: AppState? = null

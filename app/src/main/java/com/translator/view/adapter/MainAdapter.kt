@@ -9,14 +9,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.translator.R
 import com.translator.model.data.DataModel
 
-
 class MainAdapter(
     private var onListItemClickListener: OnListItemClickListener,
-    private var playArticulationClickListener: OnPlayArticulationClickListener,
-    private var data: List<DataModel>
+    private var playArticulationClickListener: OnPlayArticulationClickListener
 ) : RecyclerView.Adapter<MainAdapter.RecyclerItemViewHolder>() {
 
-
+    private var data: List<DataModel> = listOf()
     fun setData(data: List<DataModel>) {
         this.data = data
         notifyDataSetChanged()

@@ -9,38 +9,34 @@ import androidx.appcompat.app.AppCompatDelegate
 import com.github.terrakok.cicerone.NavigatorHolder
 import com.github.terrakok.cicerone.androidx.AppNavigator
 import com.translator.R
-import com.translator.application.App
 import com.translator.databinding.ActivityMainBinding
 import com.translator.presenter.BackButtonListener
 import com.translator.presenter.MainPresenter
-import javax.inject.Inject
+import org.koin.android.ext.android.inject
+
 import kotlin.properties.Delegates
 
 private const val THEME_KEY = "theme_key"
 class MainActivity : AppCompatActivity() {
-    @Inject
-    lateinit var navigatorHolder: NavigatorHolder
+
+    private val navigatorHolder: NavigatorHolder by inject()
 
     var setTheme by Delegates.notNull<Boolean>()
 
     val navigator = AppNavigator(this, R.id.container)
 
-    private val presenter = MainPresenter().apply {
-            App.instance.appComponent.inject(this)
-        }
+    private val presenter = MainPresenter()
 
 
     private var vb: ActivityMainBinding? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setTheme = this.getPreferences(Context.MODE_PRIVATE).getBoolean(THEME_KEY, false)
         setDarkLightTheme(setTheme)
-
         vb = ActivityMainBinding.inflate(layoutInflater)
         setContentView(vb?.root)
-
-        App.instance.appComponent.inject(this)
         presenter.mainFragmentStart()
 
     }

@@ -4,7 +4,6 @@ import com.translator.model.data.AppState
 import com.translator.model.data.DataModel
 import com.translator.model.data.Meanings
 
-
 fun parseSearchResults(state: AppState): AppState {
     val newSearchResults = arrayListOf<DataModel>()
     when (state) {
