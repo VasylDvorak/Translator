@@ -4,8 +4,9 @@ import androidx.lifecycle.LiveData
 import com.translator.model.data.AppState
 import com.translator.utils.parseSearchResults
 import com.translator.viewmodel.BaseViewModel
-import io.reactivex.rxjava3.disposables.Disposable
-import io.reactivex.rxjava3.observers.DisposableObserver
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 private const val QUERY = "query"
@@ -26,35 +27,37 @@ class MainViewModel (private val interactor: MainInteractor) :
     }
 
     override fun getData(word: String, isOnline: Boolean): LiveData<AppState> {
-        compositeDisposable.add(
-            interactor.getData(word, isOnline)
-                .subscribeOn(schedulerProvider.io())
-                .observeOn(schedulerProvider.ui())
-                .doOnSubscribe(doOnSubscribe())
-                .subscribeWith(getObserver())
-        )
+        liveDataForViewToObserve.value = AppState.Loading( null )
+        cancelJob()
+// Запускаем корутину для асинхронного доступа к серверу с помощью
+// launch
+        viewModelCoroutineScope.launch { startInteractor(word, isOnline) }
         return super.getData(word, isOnline)
     }
 
-
-    private fun doOnSubscribe(): (Disposable) -> Unit =
-        { liveDataForViewToObserve.value = AppState.Loading(null) }
-
-    private fun getObserver(): DisposableObserver<AppState> {
-        return object : DisposableObserver<AppState>() {
-
-            override fun onNext(state: AppState) {
-                appState = parseSearchResults(state)
-                liveDataForViewToObserve.value = appState
-            }
-
-            override fun onError(e: Throwable) {
-                liveDataForViewToObserve.value = AppState.Error(e)
-            }
-
-            override fun onComplete() {
-            }
+    private suspend fun startInteractor (word: String , isOnline: Boolean ) =
+        withContext(Dispatchers.IO) {
+            liveDataForViewToObserve.postValue(
+                parseSearchResults(
+                    interactor.getData(
+                        word,
+                        isOnline
+                    )
+                )
+            )
         }
+
+    // Обрабатываем ошибки
+    override fun handleError (error: Throwable ) {
+        liveDataForViewToObserve.postValue(AppState.Error(error))
+    }
+    override fun onCleared () {
+        liveDataForViewToObserve.value = AppState.Success( null )
+        super .onCleared()
     }
 
-}
+
+
+    }
+
+
