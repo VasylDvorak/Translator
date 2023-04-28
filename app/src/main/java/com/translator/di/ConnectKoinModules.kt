@@ -49,7 +49,6 @@ object ConnectKoinModules {
     }
 
     val appModule = module {
-        single { AppModule().mainThreadScheduler() }
         single { AppModule().applicationContext(context = androidApplication()) }
     }
 
@@ -70,7 +69,6 @@ object ConnectKoinModules {
         single { MainFragmentModule().mainFragment() }
 
     }
-
 
 }
 

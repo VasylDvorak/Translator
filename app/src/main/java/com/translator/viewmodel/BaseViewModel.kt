@@ -5,21 +5,38 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.translator.model.data.AppState
-import com.translator.model.data.DataModel
-import com.translator.rx.SchedulerProvider
-import io.reactivex.rxjava3.disposables.CompositeDisposable
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelChildren
 
 abstract class BaseViewModel<T : AppState>(
     protected val liveDataForViewToObserve: MutableLiveData<T> = MutableLiveData(),
-    protected val compositeDisposable: CompositeDisposable = CompositeDisposable(),
-    protected val schedulerProvider: SchedulerProvider = SchedulerProvider(),
     var savedStateHandle: SavedStateHandle = SavedStateHandle()
 ) : ViewModel(){
 
-    open fun getData(word: String, isOnline: Boolean): LiveData<T> = liveDataForViewToObserve
+    protected val viewModelCoroutineScope = CoroutineScope(
+        Dispatchers.Main
+                + SupervisorJob()
+                + CoroutineExceptionHandler { _, throwable ->
+            handleError(throwable)
+        })
+
+
+
 
     override fun onCleared() {
-        compositeDisposable.clear()
+        super.onCleared()
+      //  compositeDisposable.clear()
+        cancelJob()
     }
+    protected fun cancelJob () {
+        viewModelCoroutineScope.coroutineContext.cancelChildren()
+    }
+    open fun getData(word: String, isOnline: Boolean): LiveData<T> = liveDataForViewToObserve
+
+    abstract fun handleError (error: Throwable )
+
 
 }
