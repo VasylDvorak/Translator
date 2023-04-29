@@ -21,7 +21,7 @@ abstract class BaseFragment<T : AppState, I : Interactor<T>> : Fragment(), View 
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
-
+        setHasOptionsMenu(true)
         isNetworkAvailable = isOnline(getKoin().get())
     }
 

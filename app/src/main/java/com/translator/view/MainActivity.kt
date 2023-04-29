@@ -1,103 +1,20 @@
 package com.translator.view
 
-import android.content.Context
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
-import com.github.terrakok.cicerone.NavigatorHolder
-import com.github.terrakok.cicerone.androidx.AppNavigator
 import com.translator.R
-import com.translator.databinding.ActivityMainBinding
-import com.translator.presenter.BackButtonListener
-import com.translator.presenter.MainPresenter
-import org.koin.android.ext.android.inject
 
-import kotlin.properties.Delegates
-
-private const val THEME_KEY = "theme_key"
 class MainActivity : AppCompatActivity() {
-
-    private val navigatorHolder: NavigatorHolder by inject()
-
-    var setTheme by Delegates.notNull<Boolean>()
-
-    val navigator = AppNavigator(this, R.id.container)
-
-    private val presenter = MainPresenter()
-
-
-    private var vb: ActivityMainBinding? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        setTheme = this.getPreferences(Context.MODE_PRIVATE).getBoolean(THEME_KEY, false)
-        setDarkLightTheme(setTheme)
-        vb = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(vb?.root)
-        presenter.mainFragmentStart()
-
-    }
-
-    private fun setDarkLightTheme(setTheme: Boolean) {
-        if (setTheme) {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-        } else {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-        }
-    }
-
-    override fun onResumeFragments() {
-        super.onResumeFragments()
-        navigatorHolder.setNavigator(navigator)
-    }
-
-    override fun onPause() {
-        super.onPause()
-        navigatorHolder.removeNavigator()
+        setContentView(R.layout.activity_main)
+        supportFragmentManager.beginTransaction().add(R.id.container,MainFragment())
+            .addToBackStack(null).commit()
     }
 
     override fun onBackPressed() {
-        supportFragmentManager.fragments.forEach {
-            if (it is BackButtonListener && it.backPressed()) {
-                return
-            }
-        }
-        presenter.backClicked()
+        super.onBackPressed()
+        finish()
     }
-
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.main_menu, menu)
-        var updateStatusTheme = menu?.findItem(R.id.change_theme)
-        updateStatusTheme?.setChecked(setTheme)
-
-        return super.onCreateOptionsMenu(menu)
-
-
-
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-
-            R.id.change_theme -> {
-                item.isChecked = !item.isChecked
-                saveStatusTheme(item.isChecked)
-                setDarkLightTheme(item.isChecked )
-                return true
-            }
-        }
-        return super.onOptionsItemSelected(item)
-    }
-
-    private fun saveStatusTheme(nightTheme: Boolean) {
-            with(this.getPreferences(Context.MODE_PRIVATE).edit()) {
-                putBoolean(THEME_KEY, nightTheme)
-                apply()
-        }
-    }
-
-
 }

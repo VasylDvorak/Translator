@@ -1,15 +1,22 @@
 package com.translator.view
 
 
+import android.app.SearchManager
 import android.content.Context
 import android.media.AudioManager
 import android.media.MediaPlayer
+import android.os.Build
 import android.os.Bundle
+import android.provider.Contacts
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.appcompat.widget.SearchView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Observer
@@ -61,7 +68,6 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): android.view.View {
-
         _binding = FragmentMainBinding.inflate(inflater, container, false)
         return binding.root
 
@@ -84,10 +90,9 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
         if (!jsonStringList.equals("")) {
             val ListFromJson =
                 Gson().fromJson(jsonStringList, Array<DataModel>::class.java).asList()
-                updateAdapter(ListFromJson)
+            updateAdapter(ListFromJson)
         }
 
-        searchListener()
     }
 
 
@@ -105,34 +110,9 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
             binding.mainActivityRecyclerview.layoutManager =
                 LinearLayoutManager(context)
             adapter = MainAdapter(onListItemClickListener, playArticulationClickListener)
-            binding.mainActivityRecyclerview.adapter=adapter
+            binding.mainActivityRecyclerview.adapter = adapter
         }
     }
-
-
-    override fun searchListener() {
-        binding.apply {
-
-            inputLayout.setEndIconOnClickListener {
-
-                var searchWord: String = inputEditText.text.toString() ?: ""
-
-
-                isNetworkAvailable = isOnline(getKoin().get())
-                if (isNetworkAvailable) {
-                    model.getData(searchWord, isNetworkAvailable)
-                } else {
-                    showNoInternetConnectionDialog()
-                }
-
-                inputEditText.text = null
-                searchMotion.transitionToStart()
-                ViewCompat.getWindowInsetsController(requireView())
-                    ?.hide(WindowInsetsCompat.Type.ime())
-            }
-        }
-    }
-
 
     override fun onDestroyView() {
         super.onDestroyView()
@@ -188,7 +168,7 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
             }
 
             is AppState.Error -> {
-                showViewWorking()
+                showViewError()
                 showAlertDialog(getString(R.string.error_stub), appState.error.message)
             }
         }
@@ -205,6 +185,57 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
         }
     }
 
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+
+        inflater.inflate(R.menu.main_menu, menu)
+        super.onCreateOptionsMenu(menu, inflater)
+
+        val manager = requireActivity().getSystemService(Context.SEARCH_SERVICE) as SearchManager
+        val searchItem = menu.findItem(R.id.search)
+        val searchView = searchItem?.actionView as SearchView
+
+        searchItem.apply {
+
+            searchView.also {
+
+                it.setSearchableInfo(manager.getSearchableInfo(requireActivity().componentName))
+                it.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+
+                    override fun onQueryTextSubmit(query: String?): Boolean {
+
+                        isNetworkAvailable = isOnline(getKoin().get())
+                        if (isNetworkAvailable) {
+                            query?.let { searchString ->
+                                model.getData(
+                                    searchString,
+                                    isNetworkAvailable
+                                )
+                            }
+                            it.clearFocus()
+                            it.setQuery("", false)
+                            collapseActionView()
+                            Toast.makeText(
+                                context,
+                                resources.getString(R.string.looking_for) + " " + query ?: "",
+                                Toast.LENGTH_LONG
+                            ).show()
+                            showViewLoading()
+                        } else {
+                            showNoInternetConnectionDialog()
+                            showViewError()
+                        }
+                        return true
+                    }
+
+                    @RequiresApi(Build.VERSION_CODES.N)
+                    override fun onQueryTextChange(newText: String?): Boolean {
+                        return false
+                    }
+                })
+            }
+        }
+
+    }
 
     override fun showErrorScreen(error: String?) {
 
@@ -256,10 +287,5 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
                 null
             }
         }
-    }
-
-
-    companion object {
-        fun newInstance() = MainFragment()
     }
 }

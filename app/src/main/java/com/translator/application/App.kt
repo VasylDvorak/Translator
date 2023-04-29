@@ -4,7 +4,6 @@ import android.app.Application
 import com.translator.di.ConnectKoinModules.apiModule
 import com.translator.di.ConnectKoinModules.appModule
 import com.translator.di.ConnectKoinModules.application
-import com.translator.di.ConnectKoinModules.ciceroneModule
 import com.translator.di.ConnectKoinModules.mainFragmentModule
 import com.translator.di.ConnectKoinModules.mainScreen
 import org.koin.android.ext.koin.androidContext
@@ -18,7 +17,7 @@ class App : Application(){
         startKoin {
             androidContext(this@App)
             modules(listOf(application, mainScreen, apiModule, appModule,
-                ciceroneModule, mainFragmentModule))
+           mainFragmentModule))
         }
 
     }

@@ -3,9 +3,7 @@ package com.translator.di
 
 import com.translator.di.koin_modules.ApiModule
 import com.translator.di.koin_modules.AppModule
-import com.translator.di.koin_modules.CiceroneModule
 import com.translator.di.koin_modules.MainFragmentModule
-import com.translator.di.koin_modules.NAME_CICERONE_MODULE_CICERONE
 import com.translator.di.koin_modules.NAME_LOCAL
 import com.translator.di.koin_modules.NAME_REMOTE
 import com.translator.model.data.DataModel
@@ -52,18 +50,6 @@ object ConnectKoinModules {
         single { AppModule().applicationContext(context = androidApplication()) }
     }
 
-    val ciceroneModule = module {
-
-        single(qualifier = named(NAME_CICERONE_MODULE_CICERONE)) { CiceroneModule().cicerone() }
-        single {
-            CiceroneModule().navigatorHolder(
-                cicerone =
-                get(named(NAME_CICERONE_MODULE_CICERONE))
-            )
-        }
-        single { CiceroneModule().router(cicerone = get(named(NAME_CICERONE_MODULE_CICERONE))) }
-        single { CiceroneModule().screens() }
-    }
 
     val mainFragmentModule = module {
         single { MainFragmentModule().mainFragment() }
