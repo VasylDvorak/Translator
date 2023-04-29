@@ -7,6 +7,5 @@ interface View {
 
     fun showErrorScreen(error: String?)
 
-    fun searchListener()
 
 }

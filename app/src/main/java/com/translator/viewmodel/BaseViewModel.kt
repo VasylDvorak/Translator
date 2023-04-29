@@ -28,7 +28,6 @@ abstract class BaseViewModel<T : AppState>(
 
     override fun onCleared() {
         super.onCleared()
-      //  compositeDisposable.clear()
         cancelJob()
     }
     protected fun cancelJob () {
