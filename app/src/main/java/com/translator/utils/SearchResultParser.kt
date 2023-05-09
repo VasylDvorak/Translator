@@ -3,23 +3,29 @@ package com.translator.utils
 import com.translator.model.data.AppState
 import com.translator.model.data.DataModel
 import com.translator.model.data.Meanings
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 
-fun parseSearchResults(state: AppState): AppState {
-    val newSearchResults = arrayListOf<DataModel>()
-    when (state) {
+
+suspend fun parseSearchResults(state: Flow<AppState>): AppState {
+    val newSearchResults = ArrayList<DataModel>()
+    var appState = state.first()
+
+    when (appState) {
         is AppState.Success -> {
-            val searchResults = state.data
+            var searchResults = appState.data!!
+
             if (!searchResults.isNullOrEmpty()) {
                 for (searchResult in searchResults) {
                     parseResult(searchResult, newSearchResults)
                 }
             }
+            appState = AppState.Success(newSearchResults)
         }
 
         else -> {}
     }
-
-    return AppState.Success(newSearchResults)
+    return appState
 }
 
 private fun parseResult(dataModel: DataModel, newDataModels: ArrayList<DataModel>) {
@@ -27,8 +33,12 @@ private fun parseResult(dataModel: DataModel, newDataModels: ArrayList<DataModel
         val newMeanings = arrayListOf<Meanings>()
         for (meaning in dataModel.meanings) {
             if (meaning.translation != null && !meaning.translation.translation.isNullOrBlank()) {
-                newMeanings.add(Meanings(meaning.translation,
-                    meaning.imageUrl, meaning.transcription, meaning.soundUrl))
+                newMeanings.add(
+                    Meanings(
+                        meaning.translation,
+                        meaning.imageUrl, meaning.transcription, meaning.soundUrl
+                    )
+                )
             }
         }
 

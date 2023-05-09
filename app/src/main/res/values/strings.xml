@@ -23,4 +23,5 @@
         без интернет соединения</string>
     <string name="dialog_tittle_sorry">Извините</string>
     <string name="pronounce">Произношение</string>
+    <string name="empty_string">Пустая строка</string>
 </resources>

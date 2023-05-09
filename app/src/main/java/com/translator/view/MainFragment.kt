@@ -7,7 +7,6 @@ import android.media.AudioManager
 import android.media.MediaPlayer
 import android.os.Build
 import android.os.Bundle
-import android.provider.Contacts
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -17,8 +16,6 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.SearchView
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.gson.Gson
@@ -88,9 +85,9 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
 
         val jsonStringList = activity?.getPreferences(Context.MODE_PRIVATE)?.getString(LIST_KEY, "")
         if (!jsonStringList.equals("")) {
-            val ListFromJson =
+            val listFromJson =
                 Gson().fromJson(jsonStringList, Array<DataModel>::class.java).asList()
-            updateAdapter(ListFromJson)
+            updateAdapter(listFromJson)
         }
 
     }
@@ -126,7 +123,7 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
 
     override fun responseEmpty() {
 
-        showErrorScreen(getString(com.translator.R.string.empty_server_response_on_success))
+        showErrorScreen(getString(R.string.empty_server_response_on_success))
     }
 
 
@@ -169,7 +166,10 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
 
             is AppState.Error -> {
                 showViewError()
-                showAlertDialog(getString(R.string.error_stub), appState.error.message)
+                showAlertDialog(
+                    getString(R.string.dialog_tittle_sorry),
+                    getString(R.string.empty_server_response_on_success)
+                )
             }
         }
     }
@@ -205,8 +205,9 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
 
                         isNetworkAvailable = isOnline(getKoin().get())
                         if (isNetworkAvailable) {
+
                             query?.let { searchString ->
-                                model.getData(
+                                model.setUpSearchStateFlow(
                                     searchString,
                                     isNetworkAvailable
                                 )
@@ -242,7 +243,7 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
         showViewError()
         binding.errorTextview.text = error ?: getString(com.translator.R.string.undefined_error)
         binding.reloadButton.setOnClickListener {
-            model.getData("hi", true).observe(
+            model.setUpSearchStateFlow("hi", true).observe(
                 viewLifecycleOwner,
                 observer
             )

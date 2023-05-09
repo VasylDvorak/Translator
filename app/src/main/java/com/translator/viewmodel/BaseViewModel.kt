@@ -5,37 +5,31 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.translator.model.data.AppState
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 
 abstract class BaseViewModel<T : AppState>(
     protected val liveDataForViewToObserve: MutableLiveData<T> = MutableLiveData(),
     var savedStateHandle: SavedStateHandle = SavedStateHandle()
-) : ViewModel(){
+) : ViewModel() {
 
-    protected val viewModelCoroutineScope = CoroutineScope(
-        Dispatchers.Main
-                + SupervisorJob()
-                + CoroutineExceptionHandler { _, throwable ->
-            handleError(throwable)
-        })
-
-
+    protected var queryStateFlow = MutableStateFlow("")
+    protected val job: Job = Job()
 
 
     override fun onCleared() {
         super.onCleared()
         cancelJob()
     }
-    protected fun cancelJob () {
-        viewModelCoroutineScope.coroutineContext.cancelChildren()
-    }
-    open fun getData(word: String, isOnline: Boolean): LiveData<T> = liveDataForViewToObserve
 
-    abstract fun handleError (error: Throwable )
+    protected fun cancelJob() {
+        queryStateFlow = MutableStateFlow("")
+    }
+
+    open fun setUpSearchStateFlow(word: String, isOnline: Boolean): LiveData<T> =
+        liveDataForViewToObserve
+
+    abstract fun handleError(error: Throwable)
 
 
 }
