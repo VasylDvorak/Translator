@@ -13,7 +13,6 @@ class MainInteractor(
 ) : Interactor<AppState> {
 
     override suspend fun getData(word: String, fromRemoteSource: Boolean): Flow<AppState> {
-        val appState: AppState?
 
         val listData = if (fromRemoteSource) {
             repositoryRemote
@@ -21,7 +20,7 @@ class MainInteractor(
             repositoryLocal
         }.getData(word)
 
-        appState = if (listData.isEmpty()) {
+        val appState = if (listData.isEmpty()) {
             AppState.Error(Throwable(""))
         } else {
             AppState.Success(listData)
