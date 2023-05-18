@@ -4,10 +4,7 @@ import androidx.lifecycle.LiveData
 import com.translator.model.data.AppState
 import com.translator.utils.parseSearchResults
 import com.translator.viewmodel.BaseViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -19,7 +16,7 @@ import kotlinx.coroutines.launch
 
 private const val QUERY = "query"
 
-class MainViewModel (private val interactor: MainInteractor) :
+class MainViewModel(private val interactor: MainInteractor) :
     BaseViewModel<AppState>() {
 
 
@@ -33,26 +30,26 @@ class MainViewModel (private val interactor: MainInteractor) :
     }
 
     // Обрабатываем ошибки
-    override fun handleError (error: Throwable ) {
+    override fun handleError(error: Throwable) {
         liveDataForViewToObserve.postValue(AppState.Error(error))
     }
-    override fun onCleared () {
-        liveDataForViewToObserve.value = AppState.Success( null )
-        super .onCleared()
+
+    override fun onCleared() {
+        liveDataForViewToObserve.value = AppState.Success(null)
+        super.onCleared()
     }
 
-    override fun setUpSearchStateFlow(word: String, isOnline: Boolean): LiveData<AppState>  {
-        cancelJob()
-        queryStateFlow.value=Pair(word, isOnline)
-       CoroutineScope(Dispatchers.IO + job).launch {
+    override fun setUpSearchStateFlow(word: String, isOnline: Boolean): LiveData<AppState> {
+        queryStateFlow.value = Pair(word, isOnline)
+        coroutineScope.launch {
             queryStateFlow.filter { query ->
-                    if (query.first.isEmpty()) {
-                        liveDataForViewToObserve.postValue(AppState.Error(Throwable("Пустая строка")))
-                        return@filter false
-                    } else {
-                        return@filter true
-                    }
+                if (query.first.isEmpty()) {
+                    liveDataForViewToObserve.postValue(AppState.Error(Throwable("Пустая строка")))
+                    return@filter false
+                } else {
+                    return@filter true
                 }
+            }
                 .debounce(500)
                 .distinctUntilChanged()
                 .flatMapLatest { query ->
@@ -63,22 +60,26 @@ class MainViewModel (private val interactor: MainInteractor) :
                 }
                 .filterNotNull()
                 .collect { result ->
-                    liveDataForViewToObserve.postValue(result) }
+                    liveDataForViewToObserve.postValue(result)
+                }
         }
+
         return super.setUpSearchStateFlow(word, isOnline)
     }
 
     private fun dataFromNetwork(query: Pair<String, Boolean>): Flow<AppState> {
         return flow {
-            emit(parseSearchResults(
-                interactor.getData(
-                    query.first,
-                    query.second
+            emit(
+                parseSearchResults(
+                    interactor.getData(
+                        query.first,
+                        query.second
+                    )
                 )
-            ))
+            )
         }
     }
 
-    }
+}
 
 

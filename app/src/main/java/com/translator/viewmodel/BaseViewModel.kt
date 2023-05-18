@@ -5,7 +5,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.translator.model.data.AppState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 
 abstract class BaseViewModel<T : AppState>(
@@ -14,7 +17,8 @@ abstract class BaseViewModel<T : AppState>(
 ) : ViewModel() {
 
     protected var queryStateFlow = MutableStateFlow(Pair("", true))
-    protected val job: Job = Job()
+    protected var job: Job = Job()
+    protected val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     override fun onCleared() {
         super.onCleared()
