@@ -7,9 +7,12 @@ import com.translator.viewmodel.BaseViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
@@ -50,6 +53,7 @@ class MainViewModel (private val interactor: MainInteractor) :
                         return@filter true
                     }
                 }
+                .debounce(500)
                 .distinctUntilChanged()
                 .flatMapLatest { query ->
                     dataFromNetwork(query)
@@ -57,6 +61,7 @@ class MainViewModel (private val interactor: MainInteractor) :
                             emit(AppState.Error(Throwable("")))
                         }
                 }
+                .filterNotNull()
                 .collect { result ->
                     liveDataForViewToObserve.postValue(result) }
         }

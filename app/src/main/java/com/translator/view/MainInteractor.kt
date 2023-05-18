@@ -6,13 +6,15 @@ import com.translator.model.repository.Repository
 import com.translator.viewmodel.Interactor
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
 
 class MainInteractor(
     private val repositoryRemote: Repository<List<DataModel>>,
     private val repositoryLocal: Repository<List<DataModel>>
 ) : Interactor<AppState> {
 
-    override suspend fun getData(word: String, fromRemoteSource: Boolean): Flow<AppState> {
+    override suspend fun getData(word: String, fromRemoteSource: Boolean): StateFlow<AppState> {
 
         val listData = if (fromRemoteSource) {
             repositoryRemote
