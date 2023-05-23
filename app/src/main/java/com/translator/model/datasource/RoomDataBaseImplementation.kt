@@ -1,7 +1,7 @@
 package com.translator.model.datasource
 
 import com.translator.model.data.DataModel
-import io.reactivex.Observable
+import io.reactivex.rxjava3.core.Observable
 
 class RoomDataBaseImplementation : DataSource<List<DataModel>> {
 

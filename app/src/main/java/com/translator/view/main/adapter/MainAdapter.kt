@@ -1,9 +1,12 @@
 package com.translator.view.main.adapter
 
+import android.media.MediaPlayer
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.OnClickListener
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.appcompat.widget.AppCompatImageButton
 import androidx.recyclerview.widget.RecyclerView
 import com.translator.R
 import com.translator.model.data.DataModel
@@ -11,9 +14,10 @@ import com.translator.model.data.DataModel
 
 class MainAdapter(
     private var onListItemClickListener: OnListItemClickListener,
+    private var playArticulationClickListener: OnPlayArticulationClickListener,
     private var data: List<DataModel>
-) :
-    RecyclerView.Adapter<MainAdapter.RecyclerItemViewHolder>() {
+) : RecyclerView.Adapter<MainAdapter.RecyclerItemViewHolder>() {
+
 
     fun setData(data: List<DataModel>) {
         this.data = data
@@ -39,10 +43,24 @@ class MainAdapter(
 
         fun bind(data: DataModel) {
             if (layoutPosition != RecyclerView.NO_POSITION) {
-                itemView.findViewById<TextView>(R.id.header_textview_recycler_item).text = data.text
-                itemView.findViewById<TextView>(R.id.description_textview_recycler_item).text =
-                    data.meanings?.get(0)?.translation?.translation
-                itemView.setOnClickListener { openInNewWindow(data) }
+                itemView.apply {
+                    findViewById<TextView>(R.id.header_textview_recycler_item).text = data.text
+
+                    findViewById<TextView>(R.id.description_textview_recycler_item).text =
+                        data.meanings?.get(0)?.translation?.translation
+
+                    findViewById<TextView>(R.id.transcription_textview_recycler_item).text =
+                        "[" + data.meanings?.get(0)?.transcription + "]"
+
+                    setOnClickListener { openInNewWindow(data) }
+                    findViewById<AppCompatImageButton>(R.id.play_articulation).setOnClickListener {
+                        data.meanings?.get(0)?.soundUrl?.let { sound_url ->
+                            playArticulationClickListener.onPlayClick(
+                                sound_url
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -51,7 +69,12 @@ class MainAdapter(
         onListItemClickListener.onItemClick(listItemData)
     }
 
+
     interface OnListItemClickListener {
         fun onItemClick(data: DataModel)
+    }
+
+    interface OnPlayArticulationClickListener {
+        fun onPlayClick(url: String)
     }
 }

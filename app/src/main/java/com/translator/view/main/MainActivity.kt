@@ -1,115 +1,108 @@
 package com.translator.view.main
 
+import android.content.Context
 import android.os.Bundle
-import android.view.View.GONE
-import android.view.View.VISIBLE
-import android.widget.Toast
-import androidx.recyclerview.widget.LinearLayoutManager
+import android.view.Menu
+import android.view.MenuItem
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import com.github.terrakok.cicerone.NavigatorHolder
+import com.github.terrakok.cicerone.androidx.AppNavigator
 import com.translator.R
+import com.translator.application.App
 import com.translator.databinding.ActivityMainBinding
-import com.translator.model.data.AppState
-import com.translator.model.data.DataModel
-import com.translator.presenter.Presenter
-import com.translator.view.base.BaseActivity
-import com.translator.view.base.View
-import com.translator.view.main.adapter.MainAdapter
+import com.translator.presenter.BackButtonListener
+import com.translator.presenter.MainPresenter
+import javax.inject.Inject
+import kotlin.properties.Delegates
 
+private const val THEME_KEY = "theme_key"
+class MainActivity : AppCompatActivity() {
+    @Inject
+    lateinit var navigatorHolder: NavigatorHolder
 
-class MainActivity : BaseActivity<AppState>() {
+    var setTheme by Delegates.notNull<Boolean>()
 
-    private lateinit var binding: ActivityMainBinding
+    val navigator = AppNavigator(this, R.id.container)
 
-    private var adapter: MainAdapter? = null
-    private val onListItemClickListener: MainAdapter.OnListItemClickListener =
-        object : MainAdapter.OnListItemClickListener {
-            override fun onItemClick(data: DataModel) {
-                Toast.makeText(this@MainActivity, data.text, Toast.LENGTH_SHORT).show()
-            }
+    private val presenter = MainPresenter().apply {
+            App.instance.appComponent.inject(this)
         }
 
-    override fun createPresenter(): Presenter<AppState, View> {
-        return MainPresenterImpl()
-    }
+
+    private var vb: ActivityMainBinding? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        binding.searchFab.setOnClickListener {
-            val searchDialogFragment = SearchDialogFragment.newInstance()
-            searchDialogFragment.setOnSearchClickListener(object :
-                SearchDialogFragment.OnSearchClickListener {
-                override fun onClick(searchWord: String) {
-                    presenter.getData(searchWord, true)
-                }
-            })
-            searchDialogFragment.show(supportFragmentManager, BOTTOM_SHEET_FRAGMENT_DIALOG_TAG)
+
+        setTheme = this.getPreferences(Context.MODE_PRIVATE).getBoolean(THEME_KEY, false)
+        setDarkLightTheme(setTheme)
+
+        vb = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(vb?.root)
+
+        App.instance.appComponent.inject(this)
+        presenter.mainFragmentStart()
+
+    }
+
+    private fun setDarkLightTheme(setTheme: Boolean) {
+        if (setTheme) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         }
     }
 
-    override fun renderData(appState: AppState) {
-        when (appState) {
-            is AppState.Success -> {
-                val dataModel = appState.data
-                if (dataModel == null || dataModel.isEmpty()) {
-                    showErrorScreen(getString(R.string.empty_server_response_on_success))
-                } else {
-                    showViewSuccess()
-                    if (adapter == null) {
-                        binding.mainActivityRecyclerview.layoutManager =
-                            LinearLayoutManager(applicationContext)
-                        binding.mainActivityRecyclerview.adapter =
-                            MainAdapter(onListItemClickListener, dataModel)
-                    } else {
-                        adapter!!.setData(dataModel)
-                    }
-                }
+    override fun onResumeFragments() {
+        super.onResumeFragments()
+        navigatorHolder.setNavigator(navigator)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        navigatorHolder.removeNavigator()
+    }
+
+    override fun onBackPressed() {
+        supportFragmentManager.fragments.forEach {
+            if (it is BackButtonListener && it.backPressed()) {
+                return
             }
-            is AppState.Loading -> {
-                showViewLoading()
-                if (appState.progress != null) {
-                    binding.progressBarHorizontal.visibility = VISIBLE
-                    binding.progressBarRound.visibility = GONE
-                    binding.progressBarHorizontal.progress = appState.progress
-                } else {
-                    binding.progressBarHorizontal.visibility = GONE
-                    binding.progressBarRound.visibility = VISIBLE
-                }
+        }
+        presenter.backClicked()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.main_menu, menu)
+        var updateStatusTheme = menu?.findItem(R.id.change_theme)
+        updateStatusTheme?.setChecked(setTheme)
+
+        return super.onCreateOptionsMenu(menu)
+
+
+
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+
+            R.id.change_theme -> {
+                item.isChecked = !item.isChecked
+                saveStatusTheme(item.isChecked)
+                setDarkLightTheme(item.isChecked )
+                return true
             }
-            is AppState.Error -> {
-                showErrorScreen(appState.error.message)
-            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    private fun saveStatusTheme(nightTheme: Boolean) {
+            with(this.getPreferences(Context.MODE_PRIVATE).edit()) {
+                putBoolean(THEME_KEY, nightTheme)
+                apply()
         }
     }
 
-    private fun showErrorScreen(error: String?) {
-        showViewError()
-        binding.errorTextview.text = error ?: getString(R.string.undefined_error)
-        binding.reloadButton.setOnClickListener {
-            presenter.getData("hi", true)
-        }
-    }
 
-    private fun showViewSuccess() {
-        binding.successLinearLayout.visibility = VISIBLE
-        binding.loadingFrameLayout.visibility = GONE
-        binding.errorLinearLayout.visibility = GONE
-    }
-
-    private fun showViewLoading() {
-        binding.successLinearLayout.visibility = GONE
-        binding.loadingFrameLayout.visibility = VISIBLE
-        binding.errorLinearLayout.visibility = GONE
-    }
-
-    private fun showViewError() {
-        binding.successLinearLayout.visibility = GONE
-        binding.loadingFrameLayout.visibility = GONE
-        binding.errorLinearLayout.visibility = VISIBLE
-    }
-
-    companion object {
-        private const val BOTTOM_SHEET_FRAGMENT_DIALOG_TAG =
-            "74a54328-5d62-46bf-ab6b-cbf5fgt0-092395"
-    }
 }

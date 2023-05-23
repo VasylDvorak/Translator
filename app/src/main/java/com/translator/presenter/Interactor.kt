@@ -1,8 +1,8 @@
 package com.translator.presenter
 
-import io.reactivex.Observable
+import io.reactivex.rxjava3.core.Observable
 
-interface Interactor<T> {
+interface Interactor<T : Any> {
 
     fun getData(word: String, fromRemoteSource: Boolean): Observable<T>
 }

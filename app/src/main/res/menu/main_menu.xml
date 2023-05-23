@@ -1,0 +1,8 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/change_theme"
+        android:title="@string/dark_theme"
+        android:contentDescription="@string/dark_theme"
+        android:checkable="true" />
+</menu>

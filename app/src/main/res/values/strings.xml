@@ -7,4 +7,10 @@
     <string name="button_search">Search</string>
     <string name="search_hint">New word</string>
     <string name="delete_description">X</string>
+    <string name="enter_word">Enter word</string>
+    <string name="search_space">search space</string>
+    <string name="dark_theme">Dark theme</string>
+    <string name="search_word">search word</string>
+    <string name="header">Header</string>
+    <string name="transcription">[transcription]</string>
 </resources>

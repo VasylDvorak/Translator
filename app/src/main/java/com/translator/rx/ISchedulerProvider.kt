@@ -1,6 +1,7 @@
 package com.translator.rx
 
-import io.reactivex.Scheduler
+import io.reactivex.rxjava3.core.Scheduler
+
 
 //In the sake of testing
 interface ISchedulerProvider {
