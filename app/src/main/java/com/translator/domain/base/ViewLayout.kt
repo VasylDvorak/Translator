@@ -1,5 +1,5 @@
 package com.translator.domain.base
-interface View {
+interface ViewLayout {
 
     fun responseEmpty()
 

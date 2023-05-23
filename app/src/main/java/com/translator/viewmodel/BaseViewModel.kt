@@ -5,6 +5,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.translator.model.data.AppState
+import com.translator.model.data.DataModel
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -12,11 +14,14 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 
 abstract class BaseViewModel<T : AppState>(
-    protected val liveDataForViewToObserve: MutableLiveData<T> = MutableLiveData(),
-    var savedStateHandle: SavedStateHandle = SavedStateHandle()
+    protected open var liveDataForViewToObserve: MutableLiveData<T> = MutableLiveData(),
+    protected open var liveDataFindWordInHistory: MutableLiveData<DataModel> = MutableLiveData(),
+    var savedStateHandle: SavedStateHandle = SavedStateHandle(),
+    protected open val _mutableLiveData: MutableLiveData<T> = MutableLiveData()
 ) : ViewModel() {
 
     protected var queryStateFlow = MutableStateFlow(Pair("", true))
+    protected var queryStateFlowFindWordFromHistory = MutableStateFlow("")
     protected var job: Job = Job()
     protected val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -29,10 +34,19 @@ abstract class BaseViewModel<T : AppState>(
         queryStateFlow = MutableStateFlow(Pair("", true))
     }
 
-    open fun setUpSearchStateFlow(word: String, isOnline: Boolean): LiveData<T> =
+    open fun getData(word: String, isOnline: Boolean): LiveData<T> =
         liveDataForViewToObserve
+
+    open fun findWordInHistory(word: String): LiveData<DataModel> =
+        liveDataFindWordInHistory
 
     abstract fun handleError(error: Throwable)
 
 
+    protected val viewModelCoroutineScope = CoroutineScope(
+        Dispatchers.Main
+                + SupervisorJob()
+                + CoroutineExceptionHandler { _, throwable ->
+            handleError(throwable)
+        })
 }

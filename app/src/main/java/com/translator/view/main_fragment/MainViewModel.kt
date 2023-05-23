@@ -1,8 +1,10 @@
-package com.translator.view
+package com.translator.view.main_fragment
 
 import androidx.lifecycle.LiveData
 import com.translator.model.data.AppState
+import com.translator.model.data.DataModel
 import com.translator.utils.parseSearchResults
+import com.translator.utils.parseWordSearchResults
 import com.translator.viewmodel.BaseViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -16,12 +18,15 @@ import kotlinx.coroutines.launch
 
 private const val QUERY = "query"
 
-class MainViewModel(private val interactor: MainInteractor) :
-    BaseViewModel<AppState>() {
+class MainViewModel(private val interactor: MainInteractor) : BaseViewModel<AppState>() {
 
 
     fun subscribe(): LiveData<AppState> {
         return liveDataForViewToObserve
+    }
+
+    fun subscribeFindWord(): LiveData<DataModel> {
+        return liveDataFindWordInHistory
     }
 
     fun getRestoredData(): AppState? = savedStateHandle[QUERY]
@@ -34,12 +39,40 @@ class MainViewModel(private val interactor: MainInteractor) :
         liveDataForViewToObserve.postValue(AppState.Error(error))
     }
 
+
+
     override fun onCleared() {
         liveDataForViewToObserve.value = AppState.Success(null)
         super.onCleared()
     }
 
-    override fun setUpSearchStateFlow(word: String, isOnline: Boolean): LiveData<AppState> {
+    override fun findWordInHistory(word: String): LiveData<DataModel> {
+        queryStateFlowFindWordFromHistory.value = word
+        coroutineScope.launch {
+            queryStateFlowFindWordFromHistory.filter { query ->
+                if (query.isEmpty() || (query == "")) {
+                    liveDataFindWordInHistory.postValue(DataModel())
+                    return@filter false
+                } else {
+                    return@filter true
+                }
+            }
+                .debounce(500)
+                .distinctUntilChanged()
+                .flatMapLatest { query ->
+                    findWordFromHistory(query)
+                        .catch {
+                            emit(DataModel())
+                        }
+                }
+                .filterNotNull()
+                .collect { result ->
+                    liveDataFindWordInHistory.postValue(result)
+                }
+        }
+        return super.findWordInHistory(word)
+    }
+    override fun getData(word: String, isOnline: Boolean): LiveData<AppState> {
         queryStateFlow.value = Pair(word, isOnline)
         coroutineScope.launch {
             queryStateFlow.filter { query ->
@@ -64,7 +97,7 @@ class MainViewModel(private val interactor: MainInteractor) :
                 }
         }
 
-        return super.setUpSearchStateFlow(word, isOnline)
+        return super.getData(word, isOnline)
     }
 
     private fun dataFromNetwork(query: Pair<String, Boolean>): Flow<AppState> {
@@ -80,6 +113,24 @@ class MainViewModel(private val interactor: MainInteractor) :
         }
     }
 
+    private fun findWordFromHistory(query: String): Flow<DataModel> {
+        return flow {
+            emit(
+                parseWordSearchResults(
+                    interactor.getWordFromDB(
+                        query
+                    )
+                )
+            )
+        }
+    }
+
+     fun putInFavorite(favorite: DataModel) {
+         coroutineScope.launch {
+             interactor.putFavorite(
+                 favorite
+             )
+         }
+    }
+
 }
-
-

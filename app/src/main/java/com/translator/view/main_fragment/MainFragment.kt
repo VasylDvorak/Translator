@@ -1,81 +1,85 @@
-package com.translator.view
-
+package com.translator.view.main_fragment
 
 import android.app.SearchManager
 import android.content.Context
-import android.media.AudioManager
-import android.media.MediaPlayer
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
-import android.view.View.GONE
-import android.view.View.VISIBLE
+import android.view.MenuItem
+import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.github.terrakok.cicerone.Router
 import com.google.gson.Gson
 import com.translator.R
 import com.translator.databinding.FragmentMainBinding
 import com.translator.domain.base.BaseFragment
 import com.translator.model.data.AppState
 import com.translator.model.data.DataModel
+import com.translator.navigation.IScreens
 import com.translator.utils.network.isOnline
-import com.translator.view.adapter.MainAdapter
+import com.translator.view.BOTTOM_SHEET_FRAGMENT_DIALOG_TAG
+import com.translator.view.SearchDialogFragment
 import org.koin.android.ext.android.getKoin
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import java.io.IOException
+import org.koin.java.KoinJavaComponent
 
 private const val LIST_KEY = "list_key"
-
 class MainFragment : BaseFragment<AppState, MainInteractor>() {
 
     override lateinit var model: MainViewModel
 
     private val observer = Observer<AppState> { renderData(it) }
+    private val observerFindWord = Observer<DataModel> { showWordInHistory(it) }
+
+
 
     private var _binding: FragmentMainBinding? = null
     private val binding
         get() = _binding!!
 
-    var mMediaPlayer: MediaPlayer? = null
+    private val router: Router by KoinJavaComponent.inject(Router::class.java)
+   private val screen = KoinJavaComponent.getKoin().get<IScreens>()
 
-    private var adapter: MainAdapter? = null
-    private var savedDataModel: MutableList<DataModel> = mutableListOf()
 
-    private val onListItemClickListener: MainAdapter.OnListItemClickListener =
-        object : MainAdapter.OnListItemClickListener {
-            override fun onItemClick(data: DataModel) {
-                Toast.makeText(context, data.text, Toast.LENGTH_SHORT).show()
-            }
+
+    private val adapter: MainAdapter by lazy {
+
+        MainAdapter(::onItemClick, ::putInFavorite, ::onPlayClick)
+    }
+
+    private fun putInFavorite(favorite: DataModel) {
+model.putInFavorite(favorite)
+
+    }
+
+    private fun onItemClick(dataModel: DataModel) {
+        dataModel.let {
+            router.navigateTo(screen.startDescriptionFragment(it))
         }
-
-    private val playArticulationClickListener: MainAdapter.OnPlayArticulationClickListener =
-        object : MainAdapter.OnPlayArticulationClickListener {
-            override fun onPlayClick(url: String) {
-                playContentUrl(url)
-            }
-        }
+    }
+   private fun onPlayClick(url: String) {
+        playContentUrl(url)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): android.view.View {
+    ): View {
         _binding = FragmentMainBinding.inflate(inflater, container, false)
         return binding.root
 
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        saveListForAdapter(savedDataModel)
-    }
 
-    override fun onViewCreated(view: android.view.View, savedInstanceState: Bundle?) {
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
         super.onViewCreated(view, savedInstanceState)
 
@@ -92,6 +96,43 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
 
     }
 
+    private fun findWordInHistory(){
+
+            val searchDialogFragment = SearchDialogFragment.newInstance()
+        searchDialogFragment.
+            setOnSearchClickListener(object :
+                SearchDialogFragment.OnSearchClickListener {
+                override fun onClick(searchWord: String) {
+                    model.apply {
+                        subscribeFindWord().observe(viewLifecycleOwner, observerFindWord)
+                        findWordInHistory(searchWord)
+                        subscribe().observe(viewLifecycleOwner, observer)
+                    }
+
+                }
+            })
+
+        searchDialogFragment.show(requireActivity().supportFragmentManager, BOTTOM_SHEET_FRAGMENT_DIALOG_TAG)
+
+
+    }
+
+
+
+
+
+    private fun showWordInHistory(findWord: DataModel) {
+        if ((findWord.text=="")|| findWord.text.isNullOrBlank() || findWord.text.isNullOrEmpty()){
+            showAlertDialog(
+                getString(R.string.dialog_tittle_sorry),
+                getString(R.string.no_word_in_history)
+            )
+        }else{
+            findWord.let {
+                router.navigateTo(screen.startDescriptionFragment(it))
+            }
+        }
+    }
 
     private fun initViewModel() {
         if (binding.mainActivityRecyclerview.adapter != null) {
@@ -103,22 +144,15 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
     }
 
     private fun initViews() {
-        if (adapter == null) {
             binding.mainActivityRecyclerview.layoutManager =
                 LinearLayoutManager(context)
-            adapter = MainAdapter(onListItemClickListener, playArticulationClickListener)
             binding.mainActivityRecyclerview.adapter = adapter
-        }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-        if (mMediaPlayer?.isPlaying == true) {
-            mMediaPlayer?.stop()
-            mMediaPlayer?.release()
-            mMediaPlayer = null
-        }
+        releaseMediaPlayer()
     }
 
     override fun responseEmpty() {
@@ -129,7 +163,7 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
 
     private fun updateAdapter(dataModel: List<DataModel>) {
 
-        savedDataModel = dataModel.toMutableList()
+
         showViewSuccess()
         adapter?.setData(dataModel)
     }
@@ -148,19 +182,19 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
                     )
                 } else {
 
-                    updateAdapter(data)
+                    setDataToAdapter(data)
                 }
             }
 
             is AppState.Loading -> {
                 showViewLoading()
                 if (appState.progress != null) {
-                    binding.progressBarHorizontal.visibility = VISIBLE
-                    binding.progressBarRound.visibility = GONE
+                    binding.progressBarHorizontal.visibility = View.VISIBLE
+                    binding.progressBarRound.visibility = View.GONE
                     binding.progressBarHorizontal.progress = appState.progress
                 } else {
-                    binding.progressBarHorizontal.visibility = GONE
-                    binding.progressBarRound.visibility = VISIBLE
+                    binding.progressBarHorizontal.visibility = View.GONE
+                    binding.progressBarRound.visibility = View.VISIBLE
                 }
             }
 
@@ -207,7 +241,7 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
                         if (isNetworkAvailable) {
 
                             query?.let { searchString ->
-                                model.setUpSearchStateFlow(
+                                model.getData(
                                     searchString,
                                     isNetworkAvailable
                                 )
@@ -237,13 +271,30 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
         }
 
     }
+    override fun onOptionsItemSelected (item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.menu_history -> {
+                router.navigateTo(screen.startHistoryFragment())
+                true
+            }
+            R.id.find_word_in_history-> {
+                findWordInHistory()
+                true
+            }
+            R.id.favorite-> {
+                router.navigateTo(screen.startFavoriteFragment())
+                true
+            }
+            else -> super .onOptionsItemSelected(item)
+        }
+    }
 
     override fun showErrorScreen(error: String?) {
 
         showViewError()
-        binding.errorTextview.text = error ?: getString(com.translator.R.string.undefined_error)
+        binding.errorTextview.text = error ?: getString(R.string.undefined_error)
         binding.reloadButton.setOnClickListener {
-            model.setUpSearchStateFlow("hi", true).observe(
+            model.getData("hi", true).observe(
                 viewLifecycleOwner,
                 observer
             )
@@ -251,42 +302,41 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
     }
 
     private fun showViewWorking() {
-        binding.loadingFrameLayout.visibility = GONE
+        binding.loadingFrameLayout.visibility = View.GONE
     }
 
 
     private fun showViewSuccess() {
 
-        binding.successLinearLayout.visibility = VISIBLE
-        binding.loadingFrameLayout.visibility = GONE
-        binding.errorLinearLayout.visibility = GONE
+        binding.successLinearLayout.visibility = View.VISIBLE
+        binding.loadingFrameLayout.visibility = View.GONE
+        binding.errorLinearLayout.visibility = View.GONE
     }
 
     override fun showViewLoading() {
-        binding.successLinearLayout.visibility = GONE
-        binding.loadingFrameLayout.visibility = VISIBLE
-        binding.errorLinearLayout.visibility = GONE
+        binding.successLinearLayout.visibility = View.GONE
+        binding.loadingFrameLayout.visibility = View.VISIBLE
+        binding.errorLinearLayout.visibility = View.GONE
+    }
+
+    override fun setDataToAdapter(data: List<DataModel>) {
+        saveListForAdapter(data)
+        showViewSuccess()
+        adapter?.setData(data)
     }
 
 
     private fun showViewError() {
-        binding.successLinearLayout.visibility = GONE
-        binding.loadingFrameLayout.visibility = GONE
-        binding.errorLinearLayout.visibility = VISIBLE
+        binding.successLinearLayout.visibility = View.GONE
+        binding.loadingFrameLayout.visibility = View.GONE
+        binding.errorLinearLayout.visibility = View.VISIBLE
     }
 
-    fun playContentUrl(url: String) {
-        mMediaPlayer = MediaPlayer()
-        mMediaPlayer?.apply {
-            try {
-                setDataSource(url)
-                setAudioStreamType(AudioManager.STREAM_MUSIC)
-                setOnPreparedListener { start() }
-                prepareAsync()
-            } catch (exception: IOException) {
-                release()
-                null
-            }
-        }
+
+
+    companion object {
+
+        fun newInstance() = MainFragment()
+
     }
-}
+    }

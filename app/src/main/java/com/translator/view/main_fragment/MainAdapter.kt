@@ -1,4 +1,4 @@
-package com.translator.view.adapter
+package com.translator.view.main_fragment
 
 import android.view.LayoutInflater
 import android.view.View
@@ -10,8 +10,9 @@ import com.translator.R
 import com.translator.model.data.DataModel
 
 class MainAdapter(
-    private var onListItemClickListener: OnListItemClickListener,
-    private var playArticulationClickListener: OnPlayArticulationClickListener
+    private var onListItemClickListener: (DataModel) -> Unit,
+    private var putInFavoriteListListener: (DataModel) -> Unit,
+    private var playArticulationClickListener: (String) -> Unit
 ) : RecyclerView.Adapter<MainAdapter.RecyclerItemViewHolder>() {
 
     private var data: List<DataModel> = listOf()
@@ -23,7 +24,7 @@ class MainAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerItemViewHolder {
         return RecyclerItemViewHolder(
             LayoutInflater.from(parent.context)
-                .inflate(R.layout.activity_main_recyclerview_item, parent, false) as View
+                .inflate(R.layout.recyclerview_item, parent, false) as View
         )
     }
 
@@ -48,12 +49,14 @@ class MainAdapter(
                     findViewById<TextView>(R.id.transcription_textview_recycler_item).text =
                         "[" + data.meanings?.get(0)?.transcription + "]"
 
-                    setOnClickListener { openInNewWindow(data) }
+                    setOnClickListener { openInNewWindow( data ) }
+
+                    findViewById<AppCompatImageButton>(R.id.set_favorite).setOnClickListener {
+                        putInFavoriteList( data ) }
+
                     findViewById<AppCompatImageButton>(R.id.play_articulation).setOnClickListener {
                         data.meanings?.get(0)?.soundUrl?.let { sound_url ->
-                            playArticulationClickListener.onPlayClick(
-                                sound_url
-                            )
+                            playArticulationClickListener(sound_url)
                         }
                     }
                 }
@@ -61,16 +64,12 @@ class MainAdapter(
         }
     }
 
+    private fun putInFavoriteList(favoriteData: DataModel) {
+        putInFavoriteListListener(favoriteData)
+    }
+
     private fun openInNewWindow(listItemData: DataModel) {
-        onListItemClickListener.onItemClick(listItemData)
+        onListItemClickListener(listItemData)
     }
 
-
-    interface OnListItemClickListener {
-        fun onItemClick(data: DataModel)
-    }
-
-    interface OnPlayArticulationClickListener {
-        fun onPlayClick(url: String)
-    }
 }
