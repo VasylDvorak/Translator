@@ -1,10 +1,9 @@
-package com.translator.view.main
+package com.translator.view
 
 
 import android.content.Context
 import android.media.AudioManager
 import android.media.MediaPlayer
-import android.media.MediaPlayer.OnCompletionListener
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View.GONE
@@ -13,22 +12,32 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.gson.Gson
+import com.translator.R
+import com.translator.application.App
 import com.translator.databinding.FragmentMainBinding
 import com.translator.domain.base.BaseFragment
-import com.translator.domain.base.View
 import com.translator.model.data.AppState
 import com.translator.model.data.DataModel
-import com.translator.presenter.MainFragmentPresenterImpl
-import com.translator.presenter.Presenter
-import com.translator.view.main.adapter.MainAdapter
+import com.translator.utils.network.isOnline
+import com.translator.view.adapter.MainAdapter
 import java.io.IOException
+import javax.inject.Inject
 
 
 private const val LIST_KEY = "list_key"
 
-class MainFragment : BaseFragment<AppState>() {
+class MainFragment : BaseFragment<AppState, MainInteractor>() {
+
+
+    @Inject
+    internal lateinit var viewModelFactory: ViewModelProvider.Factory
+    override lateinit var model: MainViewModel
+
+    private val observer = Observer<AppState> { renderData(it) }
 
     private var _binding: FragmentMainBinding? = null
     private val binding
@@ -53,15 +62,12 @@ class MainFragment : BaseFragment<AppState>() {
             }
         }
 
-    override fun createPresenter(): Presenter<AppState, View> {
-        return MainFragmentPresenterImpl()
-    }
-
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): android.view.View {
+        model = viewModelFactory.create(MainViewModel::class.java)
+        model.subscribe().observe(viewLifecycleOwner, observer)
         _binding = FragmentMainBinding.inflate(inflater, container, false)
         return binding.root
 
@@ -73,13 +79,20 @@ class MainFragment : BaseFragment<AppState>() {
     }
 
     override fun onViewCreated(view: android.view.View, savedInstanceState: Bundle?) {
+
         super.onViewCreated(view, savedInstanceState)
+
+
+
+        model.getRestoredData()?.let { renderData(it) }
+
         val jsonStringList = activity?.getPreferences(Context.MODE_PRIVATE)?.getString(LIST_KEY, "")
         if (!jsonStringList.equals("")) {
             val ListFromJson =
                 Gson().fromJson(jsonStringList, Array<DataModel>::class.java).asList()
-            responseHasData(ListFromJson)
+                updateAdapter(ListFromJson)
         }
+
         searchListener()
     }
 
@@ -89,8 +102,16 @@ class MainFragment : BaseFragment<AppState>() {
 
             inputLayout.setEndIconOnClickListener {
 
-                var searchWord: String? = inputEditText.text.toString()
-                presenter.getData(searchWord!!, true)
+                var searchWord: String = inputEditText.text.toString() ?: ""
+
+
+                isNetworkAvailable = isOnline(App.instance.applicationContext)
+                if (isNetworkAvailable) {
+                    model.getData(searchWord, isNetworkAvailable)
+                } else {
+                    showNoInternetConnectionDialog()
+                }
+
                 inputEditText.text = null
                 searchMotion.transitionToStart()
                 ViewCompat.getWindowInsetsController(requireView())
@@ -115,19 +136,59 @@ class MainFragment : BaseFragment<AppState>() {
         showErrorScreen(getString(com.translator.R.string.empty_server_response_on_success))
     }
 
-    override fun responseHasData(dataModel: List<DataModel>) {
+
+    private fun updateAdapter(dataModel: List<DataModel>) {
         savedDataModel = dataModel.toMutableList()
         showViewSuccess()
 
         if (adapter == null) {
-            binding.mainActivityRecyclerview.layoutManager =
-                LinearLayoutManager(context)
-            binding.mainActivityRecyclerview.adapter =
-                MainAdapter(onListItemClickListener, playArticulationClickListener, dataModel)
+
+            binding.mainActivityRecyclerview.layoutManager = LinearLayoutManager(context)
+            adapter = MainAdapter(onListItemClickListener, playArticulationClickListener, dataModel)
+            binding.mainActivityRecyclerview.adapter=adapter
+
         } else {
-            adapter!!.setData(dataModel)
+            adapter?.setData(dataModel)
         }
     }
+
+
+    override fun renderData(appState: AppState) {
+        model.setQuery(appState)
+        when (appState) {
+            is AppState.Success -> {
+                showViewWorking()
+                val data = appState.data
+                if (data.isNullOrEmpty()) {
+                    showAlertDialog(
+                        getString(R.string.dialog_tittle_sorry),
+                        getString(R.string.empty_server_response_on_success)
+                    )
+                } else {
+
+                    updateAdapter(data)
+                }
+            }
+
+            is AppState.Loading -> {
+                showViewLoading()
+                if (appState.progress != null) {
+                    binding.progressBarHorizontal.visibility = VISIBLE
+                    binding.progressBarRound.visibility = GONE
+                    binding.progressBarHorizontal.progress = appState.progress
+                } else {
+                    binding.progressBarHorizontal.visibility = GONE
+                    binding.progressBarRound.visibility = VISIBLE
+                }
+            }
+
+            is AppState.Error -> {
+                showViewWorking()
+                showAlertDialog(getString(R.string.error_stub), appState.error.message)
+            }
+        }
+    }
+
 
     private fun saveListForAdapter(dataModel: List<DataModel>) {
 
@@ -145,9 +206,17 @@ class MainFragment : BaseFragment<AppState>() {
         showViewError()
         binding.errorTextview.text = error ?: getString(com.translator.R.string.undefined_error)
         binding.reloadButton.setOnClickListener {
-            presenter.getData("hi", true)
+            model.getData("hi", true).observe(
+                viewLifecycleOwner,
+                observer
+            )
         }
     }
+
+    private fun showViewWorking() {
+        binding.loadingFrameLayout.visibility = GONE
+    }
+
 
     private fun showViewSuccess() {
 
@@ -162,18 +231,6 @@ class MainFragment : BaseFragment<AppState>() {
         binding.errorLinearLayout.visibility = GONE
     }
 
-    override fun appStateProgressNotEmpty(progress: Int) {
-        binding.successLinearLayout.visibility = GONE
-        binding.progressBarHorizontal.visibility = VISIBLE
-        binding.progressBarRound.visibility = GONE
-        binding.progressBarHorizontal.progress = progress
-    }
-
-    override fun appStateProgressEmpty() {
-        binding.successLinearLayout.visibility = GONE
-        binding.progressBarHorizontal.visibility = GONE
-        binding.progressBarRound.visibility = VISIBLE
-    }
 
     private fun showViewError() {
         binding.successLinearLayout.visibility = GONE

@@ -1,4 +1,4 @@
-package com.translator.view.main
+package com.translator.view
 
 import android.content.Context
 import android.os.Bundle
@@ -34,7 +34,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setTheme = this.getPreferences(Context.MODE_PRIVATE).getBoolean(THEME_KEY, false)
         setDarkLightTheme(setTheme)
 

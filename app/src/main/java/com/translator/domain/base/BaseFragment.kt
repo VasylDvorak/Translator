@@ -2,28 +2,53 @@ package com.translator.domain.base
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
+import com.translator.R
+import com.translator.application.App
 import com.translator.model.data.AppState
-import com.translator.presenter.Presenter
+import com.translator.utils.network.isOnline
+import com.translator.utils.ui.AlertDialogFragment
+import com.translator.viewmodel.BaseViewModel
+import com.translator.viewmodel.Interactor
+import dagger.android.support.AndroidSupportInjection
 
-abstract class BaseFragment<T : AppState> : Fragment(), View {
+abstract class BaseFragment<T : AppState, I : Interactor<T>> : Fragment(), View {
 
-    protected lateinit var presenter: Presenter<T, View>
+    abstract val model: BaseViewModel<T>
 
-    protected abstract fun createPresenter(): Presenter<T, View>
-
+    protected var isNetworkAvailable: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        AndroidSupportInjection.inject(this)
         super.onCreate(savedInstanceState)
-        presenter = createPresenter()
+        isNetworkAvailable = isOnline(App.instance.applicationContext)
     }
 
-    override fun onStart() {
-        super.onStart()
-        presenter.attachView(this)
+    override fun onResume() {
+        super.onResume()
+        if (!isNetworkAvailable && isDialogNull()) {
+            showNoInternetConnectionDialog()
+        }
     }
 
-    override fun onStop() {
-        super.onStop()
-        presenter.detachView(this)
+    protected fun showNoInternetConnectionDialog() {
+        showAlertDialog(
+            getString(R.string.dialog_title_device_is_offline),
+            getString(R.string.dialog_message_device_is_offline)
+        )
+    }
+
+    protected fun showAlertDialog(title: String?, message: String?) {
+        activity?.let { AlertDialogFragment.newInstance(title, message)
+            .show(it.supportFragmentManager, DIALOG_FRAGMENT_TAG) }
+    }
+
+    private fun isDialogNull(): Boolean {
+        return activity?.supportFragmentManager?.findFragmentByTag(DIALOG_FRAGMENT_TAG) == null
+    }
+
+    abstract fun renderData(dataModel: T)
+
+    companion object {
+        private const val DIALOG_FRAGMENT_TAG = "74a54328-5d62-46bf-ab6b-cbf5d8c79522"
     }
 }
