@@ -1,9 +1,9 @@
 package com.translator.di.koin_modules
 
 
+import com.example.model.datasource.ApiService
+import com.example.model.datasource.BaseInterceptor
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
-import com.translator.model.datasource.ApiService
-import com.translator.model.datasource.BaseInterceptor
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor

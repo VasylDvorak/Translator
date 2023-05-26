@@ -1,6 +1,6 @@
 package com.translator.di.koin_modules
 
-import com.translator.view.favorite.FavoriteFragment
+import com.example.favoritescreen.FavoriteFragment
 
 
 class FavoriteFragmentModule {

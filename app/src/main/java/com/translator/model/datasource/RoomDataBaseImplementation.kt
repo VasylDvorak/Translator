@@ -1,13 +1,15 @@
 package com.translator.model.datasource
 
-import com.translator.model.data.AppState
-import com.translator.model.data.DataModel
-import com.translator.room.favorite.FavoriteDao
-import com.translator.room.history.HistoryDao
-import com.translator.utils.convertDataModelSuccessToEntity
-import com.translator.utils.converterDataModelToFavoriteEntity
-import com.translator.utils.mapFavoriteEntityToSearchResult
-import com.translator.utils.mapHistoryEntityToSearchResult
+
+import com.example.model.data.AppState
+import com.example.model.data.DataModel
+import com.example.model.datasource.DataSourceLocal
+import com.example.room.favorite.FavoriteDao
+import com.example.room.history.HistoryDao
+import com.example.utils.convertDataModelSuccessToEntity
+import com.example.utils.converterDataModelToFavoriteEntity
+import com.example.utils.mapFavoriteEntityToSearchResult
+import com.example.utils.mapHistoryEntityToSearchResult
 
 class RoomDataBaseImplementation(
     private val historyDao: HistoryDao,

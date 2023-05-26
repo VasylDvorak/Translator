@@ -1,0 +1,176 @@
+package com.example.historyscreen
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
+import androidx.lifecycle.Observer
+import com.example.core.BOTTOM_SHEET_FRAGMENT_DIALOG_TAG
+import com.example.core.IScreens
+import com.example.core.SearchDialogFragment
+import com.example.core.base.BaseFragment
+import com.example.historyscreen.databinding.FragmentHistoryFavoriteBinding
+import com.example.model.data.AppState
+import com.example.model.data.DataModel
+import com.github.terrakok.cicerone.Router
+import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.java.KoinJavaComponent
+
+
+class HistoryFragment : BaseFragment<AppState, HistoryInteractor>() {
+
+
+    private var _binding: FragmentHistoryFavoriteBinding? =null
+    private val binding
+        get() = _binding!!
+    private val observerFindWord = Observer<DataModel> { showWordInHistory(it) }
+
+    private val observer = Observer<AppState> { renderData(it) }
+
+    private val router: Router by KoinJavaComponent.inject(Router::class.java)
+    private val screen = KoinJavaComponent.getKoin().get<IScreens>()
+
+    override lateinit var model: HistoryViewModel
+
+
+    private val adapter: HistoryAdapter by lazy {
+
+        HistoryAdapter(::onItemClick, ::putInFavorite, ::onPlayClick)
+    }
+
+    private fun putInFavorite(favorite: DataModel) {
+        model.putInFavorite(favorite)
+
+    }
+
+
+    private fun onItemClick(dataModel: DataModel) {
+        dataModel.let {
+            router.navigateTo(screen.startDescriptionFragment(it))
+        }
+    }
+    private fun onPlayClick(url: String) {
+        playContentUrl(url)
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentHistoryFavoriteBinding.inflate(inflater, container, false)
+        return binding.root
+
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        iniViewModel()
+        initViews()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+        releaseMediaPlayer()
+    }
+
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+
+        inflater.inflate(R.menu.history_menu, menu)
+        super.onCreateOptionsMenu(menu, inflater)}
+
+
+    override fun onOptionsItemSelected (item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.find_word_in_history-> {
+                findWordInHistory()
+                true
+            }
+            else -> super .onOptionsItemSelected(item)
+        }
+    }
+
+    private fun findWordInHistory(){
+
+        val searchDialogFragment = SearchDialogFragment.newInstance()
+
+            searchDialogFragment.setOnSearchClickListener(object :
+                SearchDialogFragment.OnSearchClickListener {
+                override fun onClick(searchWord: String) {
+                    model.apply {
+                        subscribeFindWord().observe(viewLifecycleOwner, observerFindWord)
+                        findWordInHistory(searchWord)
+                        subscribe().observe(viewLifecycleOwner, observer)
+                    }
+
+                }
+            })
+
+        searchDialogFragment.show(requireActivity().supportFragmentManager,
+                BOTTOM_SHEET_FRAGMENT_DIALOG_TAG
+            )
+
+
+    }
+
+    override fun responseEmpty() {}
+
+    override fun showViewLoading() {}
+
+    override fun showErrorScreen(error: String?) {}
+
+
+    override fun onResume() {
+        super.onResume()
+        model.getData("", false)
+    }
+
+    override fun setDataToAdapter(data: List<DataModel>) {
+        adapter.setData(data)
+    }
+
+
+    private fun iniViewModel() {
+        if (binding.historyActivityRecyclerview.adapter != null) {
+            throw IllegalStateException("The ViewModel should be initialised first")
+        }
+        val viewModel: HistoryViewModel by viewModel()
+        model = viewModel
+        model.subscribe().observe(viewLifecycleOwner) { appState ->
+            when (appState) {
+                is AppState.Success -> {
+                    appState.data?.let {
+                        if (it.size !=0) {
+                            renderData(appState)
+                        }
+                    }
+                }
+
+                else -> {}
+            } }
+    }
+
+    private fun initViews() {
+        binding.historyActivityRecyclerview.adapter = adapter
+    }
+
+    private fun showWordInHistory(findWord: DataModel) {
+        if ((findWord.text=="")|| findWord.text.isNullOrBlank() || findWord.text.isNullOrEmpty()){
+            showAlertDialog(
+                getString(R.string.dialog_tittle_sorry),
+                getString(R.string.no_word_in_history)
+            )
+        }else{
+            findWord.let {
+                router.navigateTo(screen.startDescriptionFragment(it))
+            }
+        }
+    }
+    companion object {
+        fun newInstance() = HistoryFragment()
+    }
+}

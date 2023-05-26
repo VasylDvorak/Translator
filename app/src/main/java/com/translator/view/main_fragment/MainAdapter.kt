@@ -7,7 +7,7 @@ import android.widget.TextView
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.recyclerview.widget.RecyclerView
 import com.translator.R
-import com.translator.model.data.DataModel
+import com.example.model.data.DataModel
 
 class MainAdapter(
     private var onListItemClickListener: (DataModel) -> Unit,

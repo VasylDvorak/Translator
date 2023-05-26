@@ -2,6 +2,10 @@ package com.translator.di
 
 
 import androidx.room.Room
+import com.example.favoritescreen.FavoriteInteractor
+import com.example.favoritescreen.FavoriteViewModel
+import com.example.model.data.DataModel
+import com.example.model.datasource.RetrofitImplementation
 import com.translator.di.koin_modules.ApiModule
 import com.translator.di.koin_modules.AppModule
 import com.translator.di.koin_modules.CiceroneModule
@@ -9,20 +13,16 @@ import com.translator.di.koin_modules.FavoriteFragmentModule
 import com.translator.di.koin_modules.HistoryFragmentModule
 import com.translator.di.koin_modules.MainFragmentModule
 import com.translator.di.koin_modules.NAME_CICERONE_MODULE_CICERONE
-import com.translator.model.data.DataModel
-import com.translator.model.datasource.RetrofitImplementation
 import com.translator.model.datasource.RoomDataBaseImplementation
-import com.translator.model.repository.Repository
-import com.translator.model.repository.RepositoryImplementation
-import com.translator.model.repository.RepositoryImplementationLocal
-import com.translator.model.repository.RepositoryLocal
-import com.translator.room.HistoryFavoriteDataBase
-import com.translator.view.favorite.FavoriteInteractor
-import com.translator.view.favorite.FavoriteViewModel
+import com.example.room.HistoryFavoriteDataBase
 import com.translator.view.main_fragment.MainInteractor
 import com.translator.view.main_fragment.MainViewModel
-import com.translator.view.history.HistoryInteractor
-import com.translator.view.history.HistoryViewModel
+import com.example.historyscreen.HistoryInteractor
+import com.example.historyscreen.HistoryViewModel
+import com.example.repository.Repository
+import com.example.repository.RepositoryImplementation
+import com.example.repository.RepositoryImplementationLocal
+import com.example.repository.RepositoryLocal
 import org.koin.android.ext.koin.androidApplication
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
