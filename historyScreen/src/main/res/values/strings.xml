@@ -1,0 +1,7 @@
+<resources>
+
+    <string name="no_word_in_history">Не можем найти слово в истории</string>
+
+    <string name="dialog_tittle_sorry">Извините</string>
+
+</resources>

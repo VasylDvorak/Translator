@@ -15,15 +15,15 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.core.IScreens
+import com.example.core.base.BaseFragment
 import com.github.terrakok.cicerone.Router
 import com.google.gson.Gson
 import com.translator.R
 import com.translator.databinding.FragmentMainBinding
-import com.translator.domain.base.BaseFragment
-import com.translator.model.data.AppState
-import com.translator.model.data.DataModel
-import com.translator.navigation.IScreens
-import com.translator.utils.network.isOnline
+import com.example.model.data.AppState
+import com.example.model.data.DataModel
+import com.example.utils.network.isOnline
 import com.translator.view.BOTTOM_SHEET_FRAGMENT_DIALOG_TAG
 import com.translator.view.SearchDialogFragment
 import org.koin.android.ext.android.getKoin
@@ -85,7 +85,7 @@ model.putInFavorite(favorite)
 
         initViewModel()
         initViews()
-        model.getRestoredData()?.let { renderData(it) }
+        model.getRestoredData()?.let{ renderData(it) }
 
         val jsonStringList = activity?.getPreferences(Context.MODE_PRIVATE)?.getString(LIST_KEY, "")
         if (!jsonStringList.equals("")) {
@@ -191,7 +191,7 @@ model.putInFavorite(favorite)
                 if (appState.progress != null) {
                     binding.progressBarHorizontal.visibility = View.VISIBLE
                     binding.progressBarRound.visibility = View.GONE
-                    binding.progressBarHorizontal.progress = appState.progress
+                    binding.progressBarHorizontal.progress = appState.progress!!
                 } else {
                     binding.progressBarHorizontal.visibility = View.GONE
                     binding.progressBarRound.visibility = View.VISIBLE

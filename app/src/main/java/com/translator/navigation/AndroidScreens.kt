@@ -1,14 +1,15 @@
 package com.translator.navigation
 
 import android.os.Bundle
+import com.example.core.IScreens
+import com.example.descriptionscreen.CURRENT_DATA_MODEl
+import com.example.descriptionscreen.DescriptionFragment
+import com.example.historyscreen.HistoryFragment
+import com.example.model.data.DataModel
 import com.github.terrakok.cicerone.Screen
 import com.github.terrakok.cicerone.androidx.FragmentScreen
-import com.translator.model.data.DataModel
-import com.translator.view.CURRENT_DATA_MODEl
-import com.translator.view.DescriptionFragment
-import com.translator.view.favorite.FavoriteFragment
+import com.example.favoritescreen.FavoriteFragment
 import com.translator.view.main_fragment.MainFragment
-import com.translator.view.history.HistoryFragment
 
 class AndroidScreens : IScreens {
     override fun startMainFragment() = FragmentScreen { MainFragment.newInstance() }

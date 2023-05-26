@@ -1,7 +1,7 @@
 package com.translator.presenter
 
+import com.example.core.IScreens
 import com.github.terrakok.cicerone.Router
-import com.translator.navigation.IScreens
 import org.koin.java.KoinJavaComponent.getKoin
 import org.koin.java.KoinJavaComponent.inject
 

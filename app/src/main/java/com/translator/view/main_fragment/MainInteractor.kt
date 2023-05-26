@@ -1,10 +1,12 @@
 package com.translator.view.main_fragment
 
-import com.translator.model.data.AppState
-import com.translator.model.data.DataModel
-import com.translator.model.repository.Repository
-import com.translator.model.repository.RepositoryLocal
-import com.translator.viewmodel.Interactor
+import com.example.core.viewmodel.Interactor
+import com.example.model.data.AppState
+import com.example.model.data.DataModel
+import com.example.repository.Repository
+import com.example.repository.RepositoryLocal
+
+
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

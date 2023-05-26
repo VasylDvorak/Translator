@@ -1,11 +1,11 @@
 package com.translator.view.main_fragment
 
 import androidx.lifecycle.LiveData
-import com.translator.model.data.AppState
-import com.translator.model.data.DataModel
-import com.translator.utils.parseSearchResults
-import com.translator.utils.parseWordSearchResults
-import com.translator.viewmodel.BaseViewModel
+import com.example.core.viewmodel.BaseViewModel
+import com.example.model.data.AppState
+import com.example.model.data.DataModel
+import com.example.utils.parseSearchResults
+import com.example.utils.parseWordSearchResults
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.debounce

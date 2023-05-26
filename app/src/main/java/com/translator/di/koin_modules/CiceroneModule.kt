@@ -1,12 +1,11 @@
 package com.translator.di.koin_modules
 
 
+import com.example.core.IScreens
 import com.github.terrakok.cicerone.Cicerone
 import com.github.terrakok.cicerone.NavigatorHolder
 import com.github.terrakok.cicerone.Router
 import com.translator.navigation.AndroidScreens
-import com.translator.navigation.IScreens
-
 
 
 class CiceroneModule {
