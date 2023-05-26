@@ -13,7 +13,7 @@ import com.translator.di.koin_modules.FavoriteFragmentModule
 import com.translator.di.koin_modules.HistoryFragmentModule
 import com.translator.di.koin_modules.MainFragmentModule
 import com.translator.di.koin_modules.NAME_CICERONE_MODULE_CICERONE
-import com.translator.model.datasource.RoomDataBaseImplementation
+import com.translator.datasource.RoomDataBaseImplementation
 import com.example.room.HistoryFavoriteDataBase
 import com.translator.view.main_fragment.MainInteractor
 import com.translator.view.main_fragment.MainViewModel

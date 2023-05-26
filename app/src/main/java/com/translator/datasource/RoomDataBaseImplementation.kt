@@ -1,4 +1,4 @@
-package com.translator.model.datasource
+package com.translator.datasource
 
 
 import com.example.model.data.AppState

@@ -35,10 +35,18 @@ android {
 dependencies {
     implementation (project(Modules.model))
     implementation (project(Modules.room))
-    implementation("androidx.core:core-ktx:1.8.0")
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("com.google.android.material:material:1.9.0")
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    //Design
+    implementation(Design.appcompat)
+    implementation(Design.material)
+    implementation(Design.fragment_ktx)
+    implementation(Design.ui_ktx)
+
+//Kotlin
+    implementation(Kotlin.core)
+    implementation(Kotlin.coroutines_core)
+    implementation(Kotlin.coroutines_android)
+    //TestImpl
+    testImplementation(TestImpl.junit)
+    androidTestImplementation(TestImpl.espresso)
+    androidTestImplementation(TestImpl.test_imlement_junit)
 }
