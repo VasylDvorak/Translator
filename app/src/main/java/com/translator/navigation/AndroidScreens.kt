@@ -22,8 +22,8 @@ class AndroidScreens : IScreens {
         })
     }
 
-    override fun startHistoryFragment()= FragmentScreen { HistoryFragment.newInstance() }
-    override fun startFavoriteFragment()=FragmentScreen { FavoriteFragment.newInstance() }
+    override fun startHistoryFragment() = FragmentScreen { HistoryFragment.newInstance() }
+    override fun startFavoriteFragment() = FragmentScreen { FavoriteFragment.newInstance() }
 }
 
 

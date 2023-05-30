@@ -50,7 +50,9 @@ private fun mapResult(
             getSuccessResultData(appState, isOnline, newSearchResults)
         }
 
-        else -> {null}
+        else -> {
+            null
+        }
     }
     return newSearchResults
 }

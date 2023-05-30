@@ -1,11 +1,12 @@
 package com.translator.domain.base
+
 interface ViewLayout {
 
-    fun responseEmpty()
+    fun responseEmpty() {}
 
-    fun showViewLoading()
+    fun showViewLoading() {}
 
-    fun showErrorScreen(error: String?)
+    fun showErrorScreen(error: String?) {}
 
 
 }

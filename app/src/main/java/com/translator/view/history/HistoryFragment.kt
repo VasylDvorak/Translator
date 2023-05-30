@@ -8,23 +8,25 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.RecyclerView
 import com.github.terrakok.cicerone.Router
 import com.translator.R
 import com.translator.databinding.FragmentHistoryFavoriteBinding
+import com.translator.di.ConnectKoinModules.historyScreenScope
 import com.translator.domain.base.BaseFragment
 import com.translator.model.data.AppState
 import com.translator.model.data.DataModel
 import com.translator.navigation.IScreens
+import com.translator.utils.ui.viewById
 import com.translator.view.BOTTOM_SHEET_FRAGMENT_DIALOG_TAG
 import com.translator.view.SearchDialogFragment
-import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.java.KoinJavaComponent
 
 
 class HistoryFragment : BaseFragment<AppState, HistoryInteractor>() {
 
 
-    private var _binding: FragmentHistoryFavoriteBinding? =null
+    private var _binding: FragmentHistoryFavoriteBinding? = null
     private val binding
         get() = _binding!!
     private val observerFindWord = Observer<DataModel> { showWordInHistory(it) }
@@ -33,9 +35,9 @@ class HistoryFragment : BaseFragment<AppState, HistoryInteractor>() {
 
     private val router: Router by KoinJavaComponent.inject(Router::class.java)
     private val screen = KoinJavaComponent.getKoin().get<IScreens>()
+    private val historyActivityRecyclerview by viewById<RecyclerView>(R.id.history_activity_recyclerview)
 
     override lateinit var model: HistoryViewModel
-
 
     private val adapter: HistoryAdapter by lazy {
 
@@ -53,6 +55,7 @@ class HistoryFragment : BaseFragment<AppState, HistoryInteractor>() {
             router.navigateTo(screen.startDescriptionFragment(it))
         }
     }
+
     private fun onPlayClick(url: String) {
         playContentUrl(url)
     }
@@ -82,47 +85,44 @@ class HistoryFragment : BaseFragment<AppState, HistoryInteractor>() {
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
 
         inflater.inflate(R.menu.history_menu, menu)
-        super.onCreateOptionsMenu(menu, inflater)}
+        super.onCreateOptionsMenu(menu, inflater)
+    }
 
 
-    override fun onOptionsItemSelected (item: MenuItem): Boolean {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.find_word_in_history-> {
+            R.id.find_word_in_history -> {
                 findWordInHistory()
                 true
             }
-            else -> super .onOptionsItemSelected(item)
+
+            else -> super.onOptionsItemSelected(item)
         }
     }
 
-    private fun findWordInHistory(){
+    private fun findWordInHistory() {
 
         val searchDialogFragment = SearchDialogFragment.newInstance()
 
-            searchDialogFragment.setOnSearchClickListener(object :
-                SearchDialogFragment.OnSearchClickListener {
-                override fun onClick(searchWord: String) {
-                    model.apply {
-                        subscribeFindWord().observe(viewLifecycleOwner, observerFindWord)
-                        findWordInHistory(searchWord)
-                        subscribe().observe(viewLifecycleOwner, observer)
-                    }
-
+        searchDialogFragment.setOnSearchClickListener(object :
+            SearchDialogFragment.OnSearchClickListener {
+            override fun onClick(searchWord: String) {
+                model.apply {
+                    subscribeFindWord().observe(viewLifecycleOwner, observerFindWord)
+                    findWordInHistory(searchWord)
+                    subscribe().observe(viewLifecycleOwner, observer)
                 }
-            })
 
-        searchDialogFragment.show(requireActivity().supportFragmentManager,
-                BOTTOM_SHEET_FRAGMENT_DIALOG_TAG
-            )
+            }
+        })
+
+        searchDialogFragment.show(
+            requireActivity().supportFragmentManager,
+            BOTTOM_SHEET_FRAGMENT_DIALOG_TAG
+        )
 
 
     }
-
-    override fun responseEmpty() {}
-
-    override fun showViewLoading() {}
-
-    override fun showErrorScreen(error: String?) {}
 
 
     override fun onResume() {
@@ -136,41 +136,46 @@ class HistoryFragment : BaseFragment<AppState, HistoryInteractor>() {
 
 
     private fun iniViewModel() {
-        if (binding.historyActivityRecyclerview.adapter != null) {
+        if (historyActivityRecyclerview.adapter != null) {
             throw IllegalStateException("The ViewModel should be initialised first")
         }
-        val viewModel: HistoryViewModel by viewModel()
+
+
+        val viewModel: HistoryViewModel by lazy { historyScreenScope.get() }
         model = viewModel
+
         model.subscribe().observe(viewLifecycleOwner) { appState ->
             when (appState) {
                 is AppState.Success -> {
                     appState.data?.let {
-                        if (it.size !=0) {
+                        if (it.size != 0) {
                             renderData(appState)
                         }
                     }
                 }
 
                 else -> {}
-            } }
+            }
+        }
     }
 
     private fun initViews() {
-        binding.historyActivityRecyclerview.adapter = adapter
+        historyActivityRecyclerview.adapter = adapter
     }
 
     private fun showWordInHistory(findWord: DataModel) {
-        if ((findWord.text=="")|| findWord.text.isNullOrBlank() || findWord.text.isNullOrEmpty()){
+        if ((findWord.text == "") || findWord.text.isNullOrBlank() || findWord.text.isNullOrEmpty()) {
             showAlertDialog(
                 getString(R.string.dialog_tittle_sorry),
                 getString(R.string.no_word_in_history)
             )
-        }else{
+        } else {
             findWord.let {
                 router.navigateTo(screen.startDescriptionFragment(it))
             }
         }
     }
+
     companion object {
         fun newInstance() = HistoryFragment()
     }

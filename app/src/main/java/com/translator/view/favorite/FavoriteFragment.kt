@@ -5,40 +5,45 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
 import com.github.terrakok.cicerone.Router
 import com.translator.R
 import com.translator.databinding.FragmentHistoryFavoriteBinding
-
+import com.translator.di.ConnectKoinModules.favoriteScreenScope
 import com.translator.domain.base.BaseFragment
 import com.translator.model.data.AppState
 import com.translator.model.data.DataModel
 import com.translator.navigation.IScreens
-import org.koin.androidx.viewmodel.ext.android.viewModel
+import com.translator.utils.ui.viewById
 import org.koin.java.KoinJavaComponent
 
 
 class FavoriteFragment : BaseFragment<AppState, FavoriteInteractor>() {
 
 
-    private var _binding: FragmentHistoryFavoriteBinding? =null
+    private var _binding: FragmentHistoryFavoriteBinding? = null
     private val binding
         get() = _binding!!
 
     private val router: Router by KoinJavaComponent.inject(Router::class.java)
     private val screen = KoinJavaComponent.getKoin().get<IScreens>()
-
+    private val historyActivityRecyclerview by viewById<RecyclerView>(R.id.history_activity_recyclerview)
     override lateinit var model: FavoriteViewModel
-    private val adapter: FavoriteAdapter by lazy { FavoriteAdapter(::onItemClick, ::onPlayClick, ::onRemove) }
+    private val adapter: FavoriteAdapter by lazy {
+        FavoriteAdapter(
+            ::onItemClick,
+            ::onPlayClick,
+            ::onRemove
+        )
+    }
 
     private fun onRemove(i: Int, dataModel: DataModel) {
         model.remove(dataModel)
-        model.subscribe().observe(viewLifecycleOwner) {appState ->
+        model.subscribe().observe(viewLifecycleOwner) { appState ->
             when (appState) {
                 is AppState.Success -> {
-                    //  showViewWorking()
                     appState.data?.let {
-                        if (it.size !=0) {
-                            println("************* "+it.size)
+                        if (it.size != 0) {
                             renderData(appState)
                         }
                     }
@@ -54,6 +59,7 @@ class FavoriteFragment : BaseFragment<AppState, FavoriteInteractor>() {
             router.navigateTo(screen.startDescriptionFragment(it))
         }
     }
+
     private fun onPlayClick(url: String) {
         playContentUrl(url)
     }
@@ -80,12 +86,6 @@ class FavoriteFragment : BaseFragment<AppState, FavoriteInteractor>() {
         releaseMediaPlayer()
     }
 
-    override fun responseEmpty() {}
-
-    override fun showViewLoading() {}
-
-    override fun showErrorScreen(error: String?) {}
-
 
     override fun onResume() {
         super.onResume()
@@ -98,16 +98,19 @@ class FavoriteFragment : BaseFragment<AppState, FavoriteInteractor>() {
 
 
     private fun iniViewModel() {
-        if (binding.historyActivityRecyclerview.adapter != null) {
+        if (historyActivityRecyclerview.adapter != null) {
             throw IllegalStateException("The ViewModel should be initialised first")
         }
-        val viewModel: FavoriteViewModel by viewModel()
+
+        val viewModel: FavoriteViewModel by lazy { favoriteScreenScope.get() }
         model = viewModel
+
+
         model.subscribe().observe(viewLifecycleOwner) { appState ->
             when (appState) {
                 is AppState.Success -> {
                     appState.data?.let {
-                        if (it.size !=0) {
+                        if (it.size != 0) {
                             renderData(appState)
                         }
                     }
@@ -117,15 +120,15 @@ class FavoriteFragment : BaseFragment<AppState, FavoriteInteractor>() {
             }
 
 
-             }
+        }
     }
 
     private fun initViews() {
-        binding.apply {
-            history.text=getString(R.string.favorites)
-            historyActivityRecyclerview.adapter = adapter
-            ItemTouchHelper(ItemTouchHelperCallback(adapter)).attachToRecyclerView(historyActivityRecyclerview)
-        }
+        binding.history.text = getString(R.string.favorites)
+        historyActivityRecyclerview.adapter = adapter
+        ItemTouchHelper(ItemTouchHelperCallback(adapter)).attachToRecyclerView(
+            historyActivityRecyclerview
+        )
     }
 
     companion object {

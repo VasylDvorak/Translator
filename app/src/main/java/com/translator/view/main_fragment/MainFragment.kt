@@ -2,6 +2,7 @@ package com.translator.view.main_fragment
 
 import android.app.SearchManager
 import android.content.Context
+import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,34 +11,37 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.github.terrakok.cicerone.Router
-import com.google.gson.Gson
 import com.translator.R
 import com.translator.databinding.FragmentMainBinding
+import com.translator.di.ConnectKoinModules.mainScreenScope
 import com.translator.domain.base.BaseFragment
 import com.translator.model.data.AppState
 import com.translator.model.data.DataModel
 import com.translator.navigation.IScreens
-import com.translator.utils.network.isOnline
+import com.translator.utils.network.SharedPreferencesDelegate
+import com.translator.utils.ui.viewById
 import com.translator.view.BOTTOM_SHEET_FRAGMENT_DIALOG_TAG
 import com.translator.view.SearchDialogFragment
-import org.koin.android.ext.android.getKoin
-import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.java.KoinJavaComponent
 
 private const val LIST_KEY = "list_key"
+
 class MainFragment : BaseFragment<AppState, MainInteractor>() {
 
     override lateinit var model: MainViewModel
-
+    private lateinit var preferences: SharedPreferences
     private val observer = Observer<AppState> { renderData(it) }
     private val observerFindWord = Observer<DataModel> { showWordInHistory(it) }
-
+    private val mainFragmentRecyclerview by viewById<RecyclerView>(R.id.main_activity_recyclerview)
+    private val loadingFrameLayout by viewById<FrameLayout>(R.id.loading_frame_layout)
 
 
     private var _binding: FragmentMainBinding? = null
@@ -45,8 +49,7 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
         get() = _binding!!
 
     private val router: Router by KoinJavaComponent.inject(Router::class.java)
-   private val screen = KoinJavaComponent.getKoin().get<IScreens>()
-
+    private val screen = KoinJavaComponent.getKoin().get<IScreens>()
 
 
     private val adapter: MainAdapter by lazy {
@@ -55,7 +58,7 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
     }
 
     private fun putInFavorite(favorite: DataModel) {
-model.putInFavorite(favorite)
+        model.putInFavorite(favorite)
 
     }
 
@@ -64,7 +67,8 @@ model.putInFavorite(favorite)
             router.navigateTo(screen.startDescriptionFragment(it))
         }
     }
-   private fun onPlayClick(url: String) {
+
+    private fun onPlayClick(url: String) {
         playContentUrl(url)
     }
 
@@ -78,7 +82,6 @@ model.putInFavorite(favorite)
     }
 
 
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
         super.onViewCreated(view, savedInstanceState)
@@ -87,47 +90,44 @@ model.putInFavorite(favorite)
         initViews()
         model.getRestoredData()?.let { renderData(it) }
 
-        val jsonStringList = activity?.getPreferences(Context.MODE_PRIVATE)?.getString(LIST_KEY, "")
-        if (!jsonStringList.equals("")) {
-            val listFromJson =
-                Gson().fromJson(jsonStringList, Array<DataModel>::class.java).asList()
+        preferences = requireActivity().getPreferences(Context.MODE_PRIVATE)
+        val listFromJson: List<DataModel> by SharedPreferencesDelegate(preferences, LIST_KEY)
+        if (!listFromJson.isNullOrEmpty()) {
             updateAdapter(listFromJson)
         }
-
     }
 
-    private fun findWordInHistory(){
+    private fun findWordInHistory() {
 
-            val searchDialogFragment = SearchDialogFragment.newInstance()
-        searchDialogFragment.
-            setOnSearchClickListener(object :
-                SearchDialogFragment.OnSearchClickListener {
-                override fun onClick(searchWord: String) {
-                    model.apply {
-                        subscribeFindWord().observe(viewLifecycleOwner, observerFindWord)
-                        findWordInHistory(searchWord)
-                        subscribe().observe(viewLifecycleOwner, observer)
-                    }
-
+        val searchDialogFragment = SearchDialogFragment.newInstance()
+        searchDialogFragment.setOnSearchClickListener(object :
+            SearchDialogFragment.OnSearchClickListener {
+            override fun onClick(searchWord: String) {
+                model.apply {
+                    subscribeFindWord().observe(viewLifecycleOwner, observerFindWord)
+                    findWordInHistory(searchWord)
+                    subscribe().observe(viewLifecycleOwner, observer)
                 }
-            })
 
-        searchDialogFragment.show(requireActivity().supportFragmentManager, BOTTOM_SHEET_FRAGMENT_DIALOG_TAG)
+            }
+        })
+
+        searchDialogFragment.show(
+            requireActivity().supportFragmentManager,
+            BOTTOM_SHEET_FRAGMENT_DIALOG_TAG
+        )
 
 
     }
-
-
-
 
 
     private fun showWordInHistory(findWord: DataModel) {
-        if ((findWord.text=="")|| findWord.text.isNullOrBlank() || findWord.text.isNullOrEmpty()){
+        if ((findWord.text == "") || findWord.text.isNullOrBlank() || findWord.text.isNullOrEmpty()) {
             showAlertDialog(
                 getString(R.string.dialog_tittle_sorry),
                 getString(R.string.no_word_in_history)
             )
-        }else{
+        } else {
             findWord.let {
                 router.navigateTo(screen.startDescriptionFragment(it))
             }
@@ -135,18 +135,20 @@ model.putInFavorite(favorite)
     }
 
     private fun initViewModel() {
-        if (binding.mainActivityRecyclerview.adapter != null) {
+        if (mainFragmentRecyclerview.adapter != null) {
             throw IllegalStateException("The ViewModel should be initialised first")
         }
-        val viewModel: MainViewModel by viewModel()
+
+
+        val viewModel: MainViewModel by lazy { mainScreenScope.get() }
         model = viewModel
         model.subscribe().observe(viewLifecycleOwner, observer)
     }
 
     private fun initViews() {
-            binding.mainActivityRecyclerview.layoutManager =
-                LinearLayoutManager(context)
-            binding.mainActivityRecyclerview.adapter = adapter
+        mainFragmentRecyclerview.layoutManager =
+            LinearLayoutManager(context)
+        mainFragmentRecyclerview.adapter = adapter
     }
 
     override fun onDestroyView() {
@@ -188,13 +190,15 @@ model.putInFavorite(favorite)
 
             is AppState.Loading -> {
                 showViewLoading()
-                if (appState.progress != null) {
-                    binding.progressBarHorizontal.visibility = View.VISIBLE
-                    binding.progressBarRound.visibility = View.GONE
-                    binding.progressBarHorizontal.progress = appState.progress
-                } else {
-                    binding.progressBarHorizontal.visibility = View.GONE
-                    binding.progressBarRound.visibility = View.VISIBLE
+                binding.apply {
+                    if (appState.progress != null) {
+                        progressBarHorizontal.visibility = View.VISIBLE
+                        progressBarRound.visibility = View.GONE
+                        progressBarHorizontal.progress = appState.progress!!
+                    } else {
+                        progressBarHorizontal.visibility = View.GONE
+                        progressBarRound.visibility = View.VISIBLE
+                    }
                 }
             }
 
@@ -210,13 +214,8 @@ model.putInFavorite(favorite)
 
 
     private fun saveListForAdapter(dataModel: List<DataModel>) {
-
-        var jsonStr = Gson().toJson(dataModel)
-
-        with(activity?.getPreferences(Context.MODE_PRIVATE)?.edit()) {
-            this?.putString(LIST_KEY, jsonStr)
-            this?.apply()
-        }
+        var listFromJson: List<DataModel> by SharedPreferencesDelegate(preferences, LIST_KEY)
+        listFromJson = dataModel
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -237,7 +236,6 @@ model.putInFavorite(favorite)
 
                     override fun onQueryTextSubmit(query: String?): Boolean {
 
-                        isNetworkAvailable = isOnline(getKoin().get())
                         if (isNetworkAvailable) {
 
                             query?.let { searchString ->
@@ -271,52 +269,61 @@ model.putInFavorite(favorite)
         }
 
     }
-    override fun onOptionsItemSelected (item: MenuItem): Boolean {
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.menu_history -> {
                 router.navigateTo(screen.startHistoryFragment())
                 true
             }
-            R.id.find_word_in_history-> {
+
+            R.id.find_word_in_history -> {
                 findWordInHistory()
                 true
             }
-            R.id.favorite-> {
+
+            R.id.favorite -> {
                 router.navigateTo(screen.startFavoriteFragment())
                 true
             }
-            else -> super .onOptionsItemSelected(item)
+
+            else -> super.onOptionsItemSelected(item)
         }
     }
 
     override fun showErrorScreen(error: String?) {
 
         showViewError()
-        binding.errorTextview.text = error ?: getString(R.string.undefined_error)
-        binding.reloadButton.setOnClickListener {
-            model.getData("hi", true).observe(
-                viewLifecycleOwner,
-                observer
-            )
+        binding.apply {
+            errorTextview.text = error ?: getString(R.string.undefined_error)
+            reloadButton.setOnClickListener {
+                model.getData("hi", true).observe(
+                    viewLifecycleOwner,
+                    observer
+                )
+            }
         }
     }
 
     private fun showViewWorking() {
-        binding.loadingFrameLayout.visibility = View.GONE
+        loadingFrameLayout.visibility = View.GONE
     }
 
 
     private fun showViewSuccess() {
-
-        binding.successLinearLayout.visibility = View.VISIBLE
-        binding.loadingFrameLayout.visibility = View.GONE
-        binding.errorLinearLayout.visibility = View.GONE
+        loadingFrameLayout.visibility = View.GONE
+        binding.apply {
+            successLinearLayout.visibility = View.VISIBLE
+            errorLinearLayout.visibility = View.GONE
+        }
     }
 
     override fun showViewLoading() {
-        binding.successLinearLayout.visibility = View.GONE
-        binding.loadingFrameLayout.visibility = View.VISIBLE
-        binding.errorLinearLayout.visibility = View.GONE
+        loadingFrameLayout.visibility = View.VISIBLE
+        binding.apply {
+            successLinearLayout.visibility = View.GONE
+            errorLinearLayout.visibility = View.GONE
+        }
     }
 
     override fun setDataToAdapter(data: List<DataModel>) {
@@ -327,11 +334,12 @@ model.putInFavorite(favorite)
 
 
     private fun showViewError() {
-        binding.successLinearLayout.visibility = View.GONE
-        binding.loadingFrameLayout.visibility = View.GONE
-        binding.errorLinearLayout.visibility = View.VISIBLE
+        loadingFrameLayout.visibility = View.GONE
+        binding.apply {
+            successLinearLayout.visibility = View.GONE
+            errorLinearLayout.visibility = View.VISIBLE
+        }
     }
-
 
 
     companion object {
@@ -339,4 +347,8 @@ model.putInFavorite(favorite)
         fun newInstance() = MainFragment()
 
     }
-    }
+}
+
+
+
+

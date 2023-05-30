@@ -6,7 +6,6 @@ import com.translator.model.repository.RepositoryLocal
 import com.translator.viewmodel.Interactor
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flow
 
 
 class FavoriteInteractor(
@@ -21,9 +20,6 @@ class FavoriteInteractor(
         )
     }
 
-    override suspend fun getWordFromDB(word: String): Flow<DataModel> = flow { }
-
-    override suspend fun putFavorite(favorite: DataModel) {}
     override suspend fun removeFavoriteItem(removeFavorite: DataModel) {
         repositoryLocal.removeFavoriteItem(removeFavorite)
     }

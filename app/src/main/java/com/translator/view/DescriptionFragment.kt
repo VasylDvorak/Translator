@@ -17,18 +17,23 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.Target
+import com.google.android.material.snackbar.Snackbar
 import com.translator.R
 import com.translator.databinding.FragmentDescriptionBinding
 import com.translator.domain.base.BaseFragment
 import com.translator.model.data.DataModel
-import com.translator.utils.network.isOnline
+import com.translator.utils.network.OnlineRepository
 import com.translator.utils.ui.AlertDialogFragment
-import org.koin.android.ext.android.getKoin
+import org.koin.android.ext.android.inject
 import java.io.IOException
 
 const val CURRENT_DATA_MODEl = "current_data_model"
 
 class DescriptionFragment : Fragment() {
+
+    private var snack: Snackbar? = null
+    protected var isNetworkAvailable: Boolean = false
+    private val checkConnection: OnlineRepository by inject()
     var mMediaPlayer: MediaPlayer? = null
     private var _binding: FragmentDescriptionBinding? = null
     private val binding
@@ -45,7 +50,7 @@ class DescriptionFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.descriptionScreenSwipeRefreshLayout.setOnRefreshListener { startLoadingOrShowError() }
+        startLoadingOrShowError()
         setData()
     }
 
@@ -53,27 +58,50 @@ class DescriptionFragment : Fragment() {
     private fun setData() {
         val currentDataModel =
             (arguments?.getParcelable(CURRENT_DATA_MODEl) as DataModel?) ?: DataModel()
-        binding.descriptionHeader.text = currentDataModel.text
-        if (currentDataModel.meanings?.size != 0) {
-            binding.translationTextview.text =
-                currentDataModel.meanings?.get(0)?.translation?.translation
-            binding.transcription.text =
-                "[" + currentDataModel.meanings?.get(0)?.transcription + "]"
+        binding.apply {
+            descriptionHeader.text = currentDataModel.text
+            if (currentDataModel.meanings?.size != 0) {
+                translationTextview.text =
+                    currentDataModel.meanings?.get(0)?.translation?.translation
+                transcription.text =
+                    "[" + currentDataModel.meanings?.get(0)?.transcription + "]"
 
-            binding.playArticulation.setOnClickListener {
-                currentDataModel.meanings?.get(0)?.soundUrl?.let { sound_url ->
-                    playContentUrl(sound_url)
+                playArticulation.setOnClickListener {
+                    currentDataModel.meanings?.get(0)?.soundUrl?.let { sound_url ->
+                        playContentUrl(sound_url)
+                    }
+                }
+                val imageLink = currentDataModel.meanings?.get(0)?.imageUrl
+                if (imageLink.isNullOrBlank()) {
+                    stopRefreshAnimationIfNeeded()
+                } else {
+
+                    useGlideToLoadPhoto(descriptionImageview, imageLink)
+
                 }
             }
-            val imageLink = currentDataModel.meanings?.get(0)?.imageUrl
-            if (imageLink.isNullOrBlank()) {
-                stopRefreshAnimationIfNeeded()
-            } else {
-
-                useGlideToLoadPhoto(binding.descriptionImageview, imageLink)
-
-            }
         }
+    }
+
+    private fun startLoadingOrShowError() {
+        checkConnection.observe(
+            viewLifecycleOwner,
+            {
+                isNetworkAvailable = it
+                if (isNetworkAvailable) {
+                    snack?.dismiss()
+                    snack = null
+                    setData()
+                } else {
+                    snack = Snackbar.make(
+                        requireView(),
+                        R.string.dialog_message_device_is_offline, Snackbar.LENGTH_INDEFINITE
+                    )
+                    snack?.show()
+                    stopRefreshAnimationIfNeeded()
+                }
+            })
+        checkConnection.currentStatus()
     }
 
     override fun onDestroyView() {
@@ -85,6 +113,7 @@ class DescriptionFragment : Fragment() {
             mMediaPlayer = null
         }
     }
+
 
     fun playContentUrl(url: String) {
         mMediaPlayer = MediaPlayer()
@@ -101,18 +130,12 @@ class DescriptionFragment : Fragment() {
         }
     }
 
-    private fun startLoadingOrShowError() {
-        if (isOnline(getKoin().get())) {
-            setData()
-        } else {
-            showNoInternetConnectionDialog()
-            stopRefreshAnimationIfNeeded()
-        }
-    }
 
     private fun stopRefreshAnimationIfNeeded() {
-        if (binding.descriptionScreenSwipeRefreshLayout.isRefreshing) {
-            binding.descriptionScreenSwipeRefreshLayout.isRefreshing = false
+        binding.apply {
+            if (descriptionScreenSwipeRefreshLayout.isRefreshing) {
+                descriptionScreenSwipeRefreshLayout.isRefreshing = false
+            }
         }
     }
 

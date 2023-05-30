@@ -20,7 +20,8 @@ private const val QUERY = "query"
 
 class MainViewModel(private val interactor: MainInteractor) : BaseViewModel<AppState>() {
 
-
+    private val liveDataForViewToObserve: LiveData<AppState> = _liveDataForViewToObserve
+    private val liveDataFindWordInHistory: LiveData<DataModel> = _liveDataFindWordInHistory
     fun subscribe(): LiveData<AppState> {
         return liveDataForViewToObserve
     }
@@ -36,13 +37,13 @@ class MainViewModel(private val interactor: MainInteractor) : BaseViewModel<AppS
 
     // Обрабатываем ошибки
     override fun handleError(error: Throwable) {
-        liveDataForViewToObserve.postValue(AppState.Error(error))
+        _liveDataForViewToObserve.postValue(AppState.Error(error))
     }
 
 
-
     override fun onCleared() {
-        liveDataForViewToObserve.value = AppState.Success(null)
+        _liveDataForViewToObserve.value = AppState.Success(null)
+        _liveDataFindWordInHistory.value = null
         super.onCleared()
     }
 
@@ -51,7 +52,7 @@ class MainViewModel(private val interactor: MainInteractor) : BaseViewModel<AppS
         coroutineScope.launch {
             queryStateFlowFindWordFromHistory.filter { query ->
                 if (query.isEmpty() || (query == "")) {
-                    liveDataFindWordInHistory.postValue(DataModel())
+                    _liveDataFindWordInHistory.postValue(DataModel())
                     return@filter false
                 } else {
                     return@filter true
@@ -67,17 +68,18 @@ class MainViewModel(private val interactor: MainInteractor) : BaseViewModel<AppS
                 }
                 .filterNotNull()
                 .collect { result ->
-                    liveDataFindWordInHistory.postValue(result)
+                    _liveDataFindWordInHistory.postValue(result)
                 }
         }
         return super.findWordInHistory(word)
     }
+
     override fun getData(word: String, isOnline: Boolean): LiveData<AppState> {
         queryStateFlow.value = Pair(word, isOnline)
         coroutineScope.launch {
             queryStateFlow.filter { query ->
                 if (query.first.isEmpty()) {
-                    liveDataForViewToObserve.postValue(AppState.Error(Throwable("Пустая строка")))
+                    _liveDataForViewToObserve.postValue(AppState.Error(Throwable("Пустая строка")))
                     return@filter false
                 } else {
                     return@filter true
@@ -93,7 +95,7 @@ class MainViewModel(private val interactor: MainInteractor) : BaseViewModel<AppS
                 }
                 .filterNotNull()
                 .collect { result ->
-                    liveDataForViewToObserve.postValue(result)
+                    _liveDataForViewToObserve.postValue(result)
                 }
         }
 
@@ -125,12 +127,12 @@ class MainViewModel(private val interactor: MainInteractor) : BaseViewModel<AppS
         }
     }
 
-     fun putInFavorite(favorite: DataModel) {
-         coroutineScope.launch {
-             interactor.putFavorite(
-                 favorite
-             )
-         }
+    fun putInFavorite(favorite: DataModel) {
+        coroutineScope.launch {
+            interactor.putFavorite(
+                favorite
+            )
+        }
     }
 
 }

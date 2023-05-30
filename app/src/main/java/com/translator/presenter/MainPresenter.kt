@@ -17,7 +17,7 @@ class MainPresenter {
 
     fun backClicked() {
 
-    router.replaceScreen(screen.startMainFragment())
+        router.replaceScreen(screen.startMainFragment())
     }
 
 }

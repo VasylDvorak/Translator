@@ -7,8 +7,10 @@ import kotlinx.android.parcel.Parcelize
 sealed class AppState : Parcelable {
     @Parcelize
     data class Success(val data: List<DataModel>?) : AppState(), Parcelable
+
     @Parcelize
     data class Error(val error: Throwable) : AppState(), Parcelable
+
     @Parcelize
     data class Loading(val progress: Int?) : AppState(), Parcelable
 }

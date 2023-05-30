@@ -8,7 +8,6 @@ import com.translator.navigation.AndroidScreens
 import com.translator.navigation.IScreens
 
 
-
 class CiceroneModule {
 
     fun cicerone(): Cicerone<Router> = Cicerone.create()

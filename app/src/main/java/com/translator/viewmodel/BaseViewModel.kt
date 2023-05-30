@@ -14,8 +14,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 
 abstract class BaseViewModel<T : AppState>(
-    protected open var liveDataForViewToObserve: MutableLiveData<T> = MutableLiveData(),
-    protected open var liveDataFindWordInHistory: MutableLiveData<DataModel> = MutableLiveData(),
+    protected open var _liveDataForViewToObserve: MutableLiveData<T> = MutableLiveData(),
+    protected open var _liveDataFindWordInHistory: MutableLiveData<DataModel> = MutableLiveData(),
     var savedStateHandle: SavedStateHandle = SavedStateHandle(),
     protected open val _mutableLiveData: MutableLiveData<T> = MutableLiveData()
 ) : ViewModel() {
@@ -35,10 +35,10 @@ abstract class BaseViewModel<T : AppState>(
     }
 
     open fun getData(word: String, isOnline: Boolean): LiveData<T> =
-        liveDataForViewToObserve
+        _liveDataForViewToObserve
 
     open fun findWordInHistory(word: String): LiveData<DataModel> =
-        liveDataFindWordInHistory
+        _liveDataFindWordInHistory
 
     abstract fun handleError(error: Throwable)
 

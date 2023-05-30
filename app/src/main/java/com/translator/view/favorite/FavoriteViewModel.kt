@@ -9,9 +9,7 @@ import kotlinx.coroutines.launch
 
 class FavoriteViewModel(private val interactor: FavoriteInteractor) :
     BaseViewModel<AppState>() {
-
-    override var liveDataForViewToObserve = _mutableLiveData
-
+    private val liveDataForViewToObserve: LiveData<AppState> = _mutableLiveData
     fun subscribe(): LiveData<AppState> {
         return liveDataForViewToObserve
     }
@@ -41,7 +39,14 @@ class FavoriteViewModel(private val interactor: FavoriteInteractor) :
             interactor.removeFavoriteItem(
                 dataModel
             )
-            _mutableLiveData.postValue(parseLocalSearchResults(interactor.getData("", true)))
+            _mutableLiveData.postValue(
+                parseLocalSearchResults(
+                    interactor.getData(
+                        "",
+                        true
+                    )
+                )
+            )
         }
     }
 }

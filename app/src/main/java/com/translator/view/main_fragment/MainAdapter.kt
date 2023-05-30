@@ -8,6 +8,7 @@ import androidx.appcompat.widget.AppCompatImageButton
 import androidx.recyclerview.widget.RecyclerView
 import com.translator.R
 import com.translator.model.data.DataModel
+import com.translator.utils.ui.viewById
 
 class MainAdapter(
     private var onListItemClickListener: (DataModel) -> Unit,
@@ -37,29 +38,26 @@ class MainAdapter(
     }
 
     inner class RecyclerItemViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-
+        private val header_textview_recycler_item by viewById<TextView>(R.id.header_textview_recycler_item)
+        private val description_textview_recycler_item by viewById<TextView>(R.id.description_textview_recycler_item)
+        private val transcription_textview_recycler_item by viewById<TextView>(R.id.transcription_textview_recycler_item)
+        private val set_favorite by viewById<AppCompatImageButton>(R.id.set_favorite)
+        private val play_articulation by viewById<AppCompatImageButton>(R.id.play_articulation)
         fun bind(data: DataModel) {
             if (layoutPosition != RecyclerView.NO_POSITION) {
-                itemView.apply {
-                    findViewById<TextView>(R.id.header_textview_recycler_item).text = data.text
 
-                    findViewById<TextView>(R.id.description_textview_recycler_item).text =
-                        data.meanings?.get(0)?.translation?.translation
-
-                    findViewById<TextView>(R.id.transcription_textview_recycler_item).text =
-                        "[" + data.meanings?.get(0)?.transcription + "]"
-
-                    setOnClickListener { openInNewWindow( data ) }
-
-                    findViewById<AppCompatImageButton>(R.id.set_favorite).setOnClickListener {
-                        putInFavoriteList( data ) }
-
-                    findViewById<AppCompatImageButton>(R.id.play_articulation).setOnClickListener {
-                        data.meanings?.get(0)?.soundUrl?.let { sound_url ->
-                            playArticulationClickListener(sound_url)
-                        }
+                header_textview_recycler_item.text = data.text
+                description_textview_recycler_item.text =
+                    data.meanings?.get(0)?.translation?.translation
+                transcription_textview_recycler_item.text =
+                    "[" + data.meanings?.get(0)?.transcription + "]"
+                set_favorite.setOnClickListener { putInFavoriteList(data) }
+                play_articulation.setOnClickListener {
+                    data.meanings?.get(0)?.soundUrl?.let { sound_url ->
+                        playArticulationClickListener(sound_url)
                     }
                 }
+                itemView.setOnClickListener { openInNewWindow(data) }
             }
         }
     }

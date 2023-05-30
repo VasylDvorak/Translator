@@ -19,8 +19,8 @@ import kotlinx.coroutines.launch
 class HistoryViewModel(private val interactor: HistoryInteractor) :
     BaseViewModel<AppState>() {
 
-    override var liveDataForViewToObserve = _mutableLiveData
-
+    private val liveDataForViewToObserve: LiveData<AppState> = _mutableLiveData
+    private val liveDataFindWordInHistory: LiveData<DataModel> = _liveDataFindWordInHistory
     fun subscribe(): LiveData<AppState> {
         return liveDataForViewToObserve
     }
@@ -46,6 +46,7 @@ class HistoryViewModel(private val interactor: HistoryInteractor) :
 
     override fun onCleared() {
         _mutableLiveData.value = AppState.Success(null)
+        _liveDataFindWordInHistory.value = null
         super.onCleared()
     }
 
@@ -62,7 +63,7 @@ class HistoryViewModel(private val interactor: HistoryInteractor) :
         coroutineScope.launch {
             queryStateFlowFindWordFromHistory.filter { query ->
                 if (query.isEmpty() || (query == "")) {
-                    liveDataFindWordInHistory.postValue(DataModel())
+                    _liveDataFindWordInHistory.postValue(DataModel())
                     return@filter false
                 } else {
                     return@filter true
@@ -78,7 +79,7 @@ class HistoryViewModel(private val interactor: HistoryInteractor) :
                 }
                 .filterNotNull()
                 .collect { result ->
-                    liveDataFindWordInHistory.postValue(result)
+                    _liveDataFindWordInHistory.postValue(result)
                 }
         }
         return super.findWordInHistory(word)
