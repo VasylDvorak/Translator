@@ -3,6 +3,8 @@ package com.translator.view.main_fragment
 import android.app.SearchManager
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.RenderEffect
+import android.graphics.Shader
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -29,6 +31,7 @@ import com.translator.navigation.IScreens
 import com.translator.utils.network.SharedPreferencesDelegate
 import com.translator.utils.ui.viewById
 import com.translator.view.BOTTOM_SHEET_FRAGMENT_DIALOG_TAG
+import com.translator.view.MainActivity
 import com.translator.view.SearchDialogFragment
 import org.koin.java.KoinJavaComponent
 
@@ -100,6 +103,7 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
     private fun findWordInHistory() {
 
         val searchDialogFragment = SearchDialogFragment.newInstance()
+        searchDialogFragment.setRecyclerView(mainFragmentRecyclerview)
         searchDialogFragment.setOnSearchClickListener(object :
             SearchDialogFragment.OnSearchClickListener {
             override fun onClick(searchWord: String) {
@@ -111,11 +115,17 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
 
             }
         })
-
         searchDialogFragment.show(
             requireActivity().supportFragmentManager,
             BOTTOM_SHEET_FRAGMENT_DIALOG_TAG
         )
+        if (checkSDKversion) {
+            val blurEffect = RenderEffect.createBlurEffect(
+                16f, 16f,
+                Shader.TileMode.CLAMP
+            )
+            mainFragmentRecyclerview.setRenderEffect(blurEffect)
+        }
 
 
     }

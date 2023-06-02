@@ -1,5 +1,7 @@
 package com.translator.view.history
 
+import android.graphics.RenderEffect
+import android.graphics.Shader
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -101,9 +103,8 @@ class HistoryFragment : BaseFragment<AppState, HistoryInteractor>() {
     }
 
     private fun findWordInHistory() {
-
         val searchDialogFragment = SearchDialogFragment.newInstance()
-
+        searchDialogFragment.setRecyclerView(historyActivityRecyclerview)
         searchDialogFragment.setOnSearchClickListener(object :
             SearchDialogFragment.OnSearchClickListener {
             override fun onClick(searchWord: String) {
@@ -120,6 +121,13 @@ class HistoryFragment : BaseFragment<AppState, HistoryInteractor>() {
             requireActivity().supportFragmentManager,
             BOTTOM_SHEET_FRAGMENT_DIALOG_TAG
         )
+        if (checkSDKversion) {
+            val blurEffect = RenderEffect.createBlurEffect(
+                25f, 10f,
+                Shader.TileMode.MIRROR
+            )
+            historyActivityRecyclerview.setRenderEffect(blurEffect)
+        }
 
 
     }

@@ -1,19 +1,21 @@
 package com.translator.view
 
+import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.translator.databinding.SearchDialogFragmentBinding
 
 const val BOTTOM_SHEET_FRAGMENT_DIALOG_TAG =
     "74a54328-5d62-46bf-ab6b-cbf5fgt0-092395"
 
-class SearchDialogFragment : BottomSheetDialogFragment() {
-
+class SearchDialogFragment() : BottomSheetDialogFragment() {
+    lateinit var recyclerview: RecyclerView
     private var _binding: SearchDialogFragmentBinding? = null
     private val binding get() = _binding!!
     private var onSearchClickListener: OnSearchClickListener? = null
@@ -65,6 +67,9 @@ class SearchDialogFragment : BottomSheetDialogFragment() {
 
     override fun onDestroyView() {
         onSearchClickListener = null
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            recyclerview.setRenderEffect(null)
+        }
         super.onDestroyView()
     }
 
@@ -75,14 +80,18 @@ class SearchDialogFragment : BottomSheetDialogFragment() {
         }
     }
 
+    fun setRecyclerView(recyclerview: RecyclerView) {
+        this.recyclerview = recyclerview
+    }
+
+
     interface OnSearchClickListener {
 
         fun onClick(searchWord: String)
     }
 
     companion object {
-        fun newInstance(): SearchDialogFragment {
-            return SearchDialogFragment()
-        }
+        fun newInstance() = SearchDialogFragment()
     }
+
 }

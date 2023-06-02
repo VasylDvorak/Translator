@@ -3,6 +3,7 @@ package com.translator.domain.base
 
 import android.media.AudioManager
 import android.media.MediaPlayer
+import android.os.Build
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import com.google.android.material.snackbar.Snackbar
@@ -24,7 +25,7 @@ abstract class BaseFragment<T : AppState, I : Interactor<T>> : Fragment(), ViewL
     protected var isNetworkAvailable: Boolean = false
     private val checkConnection: OnlineRepository by inject()
     abstract val model: BaseViewModel<T>
-
+    protected val checkSDKversion = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
     override fun onCreate(savedInstanceState: Bundle?) {
 

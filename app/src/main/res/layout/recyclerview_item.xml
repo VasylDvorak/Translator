@@ -54,6 +54,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/margin_medium"
+                    android:layout_marginEnd="@dimen/margin_end"
                     android:contentDescription="@string/header"
                     android:textIsSelectable="true"
                     tools:text="@string/header" />
@@ -64,6 +65,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/margin_medium"
+                    android:layout_marginEnd="@dimen/margin_end"
                     android:contentDescription="@string/transcription"
                     tools:text="@string/transcription" />
 
@@ -74,6 +76,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/margin_medium"
+                    android:layout_marginEnd="@dimen/margin_end"
+                    android:contentDescription="@string/translation"
+                    tools:text="@string/translation"
                     android:textIsSelectable="true" />
             </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>

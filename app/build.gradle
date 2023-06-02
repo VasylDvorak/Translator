@@ -60,7 +60,6 @@ dependencies {
     implementation Design.recyclerview
     implementation Design.viewmodel_ktx
 
-
 //Kotlin
     implementation Kotlin.core
     implementation Kotlin.coroutines_core
