@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity() {
     private fun setDefaultSplashScreen() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             setSplashScreenHideAnimation()
-            setSplashScreenDuration()
+           setSplashScreenDuration()
         }
     }
 
@@ -82,7 +82,9 @@ class MainActivity : AppCompatActivity() {
             ).apply {
                 interpolator = AccelerateDecelerateInterpolator()
                 duration = DURATION
-                doOnEnd { splashScreenView.remove() }
+                doOnEnd {
+                    splashScreenView.removeAllViews()
+                }
                 start()
             }
         }

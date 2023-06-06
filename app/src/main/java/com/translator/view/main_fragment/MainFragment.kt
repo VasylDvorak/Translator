@@ -31,7 +31,6 @@ import com.translator.navigation.IScreens
 import com.translator.utils.network.SharedPreferencesDelegate
 import com.translator.utils.ui.viewById
 import com.translator.view.BOTTOM_SHEET_FRAGMENT_DIALOG_TAG
-import com.translator.view.MainActivity
 import com.translator.view.SearchDialogFragment
 import org.koin.java.KoinJavaComponent
 
