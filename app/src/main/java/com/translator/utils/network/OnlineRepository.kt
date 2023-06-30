@@ -26,6 +26,8 @@ class OnlineRepository : LiveData<Boolean>() {
         }
     }
 
+
+
     override fun onActive() {
         connectivityManager.registerNetworkCallback(request, callback)
     }

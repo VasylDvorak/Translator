@@ -25,7 +25,7 @@ class FavoriteFragment : BaseFragment<AppState, FavoriteInteractor>() {
     private val binding
         get() = _binding!!
 
-    private val router: Router by KoinJavaComponent.inject(Router::class.java)
+    val router: Router by KoinJavaComponent.inject(Router::class.java)
     private val screen = KoinJavaComponent.getKoin().get<IScreens>()
     private val historyActivityRecyclerview by viewById<RecyclerView>(R.id.history_activity_recyclerview)
     override lateinit var model: FavoriteViewModel

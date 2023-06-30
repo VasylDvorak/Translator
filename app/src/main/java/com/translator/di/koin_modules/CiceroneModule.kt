@@ -14,4 +14,8 @@ class CiceroneModule {
     fun navigatorHolder(cicerone: Cicerone<Router>): NavigatorHolder = cicerone.getNavigatorHolder()
     fun router(cicerone: Cicerone<Router>): Router = cicerone.router
     fun screens(): IScreens = AndroidScreens()
+
+    val someString = "My Translator application"
+
+    fun getStringForTest()=someString
 }

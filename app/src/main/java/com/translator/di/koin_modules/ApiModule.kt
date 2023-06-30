@@ -17,7 +17,8 @@ class ApiModule {
         return createRetrofit(BaseInterceptor.interceptor).create(ApiService::class.java)
     }
 
-    private fun baseUrlLocation(): String = "https://dictionary.skyeng.ru/api/public/v1/"
+    val baseUrl = "https://dictionary.skyeng.ru/api/public/v1/"
+    fun baseUrlLocation(): String = "https://dictionary.skyeng.ru/api/public/v1/"
 
     private fun createRetrofit(interceptor: Interceptor): Retrofit {
         return Retrofit.Builder()

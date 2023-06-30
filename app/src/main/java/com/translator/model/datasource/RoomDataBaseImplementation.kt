@@ -12,8 +12,7 @@ import com.translator.utils.mapHistoryEntityToSearchResult
 class RoomDataBaseImplementation(
     private val historyDao: HistoryDao,
     private val favoriteDao: FavoriteDao
-) :
-    DataSourceLocal<List<DataModel>> {
+) : DataSourceLocal<List<DataModel>> {
 
     override suspend fun getData(word: String): List<DataModel> {
         return mapHistoryEntityToSearchResult(historyDao.all())

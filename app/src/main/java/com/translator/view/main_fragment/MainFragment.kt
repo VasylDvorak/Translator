@@ -50,8 +50,9 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
     private val binding
         get() = _binding!!
 
-    private val router: Router by KoinJavaComponent.inject(Router::class.java)
+    val router: Router by KoinJavaComponent.inject(Router::class.java)
     private val screen = KoinJavaComponent.getKoin().get<IScreens>()
+
 
 
     private val adapter: MainAdapter by lazy {
@@ -352,7 +353,6 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
 
 
     companion object {
-
         fun newInstance() = MainFragment()
 
     }

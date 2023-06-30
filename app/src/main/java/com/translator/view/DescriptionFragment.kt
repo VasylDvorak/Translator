@@ -27,7 +27,7 @@ import com.translator.utils.ui.AlertDialogFragment
 import org.koin.android.ext.android.inject
 import java.io.IOException
 
-const val CURRENT_DATA_MODEl = "current_data_model"
+
 
 class DescriptionFragment : Fragment() {
 
@@ -196,5 +196,6 @@ class DescriptionFragment : Fragment() {
             fragment.arguments = bundle
             return fragment
         }
+        const val CURRENT_DATA_MODEl = "current_data_model"
     }
 }
