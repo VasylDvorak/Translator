@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.first
 
 
 suspend fun parseSearchResults(state: Flow<AppState>): AppState {
-    val newSearchResults = ArrayList<DataModel>()
+    var newSearchResults = ArrayList<DataModel>()
     var appState = state.first()
 
     when (appState) {
@@ -23,7 +23,7 @@ suspend fun parseSearchResults(state: Flow<AppState>): AppState {
                     parseResult(searchResult, newSearchResults)
                 }
             }
-            appState = AppState.Success(newSearchResults)
+            appState = AppState.Success(searchResults)
         }
 
         else -> {}
@@ -110,7 +110,7 @@ private fun parseOnlineResult(
 }
 
 
-fun parseResult(dataModel: DataModel, newDataModels: ArrayList<DataModel>) {
+fun parseResult(dataModel: DataModel, newDataModels: ArrayList<DataModel>): ArrayList<DataModel> {
     if (!dataModel.text.isNullOrBlank() && !dataModel.meanings.isNullOrEmpty()) {
         val newMeanings = arrayListOf<Meanings>()
         for (meaning in dataModel.meanings) {
@@ -129,6 +129,7 @@ fun parseResult(dataModel: DataModel, newDataModels: ArrayList<DataModel>) {
             newDataModels.add(DataModel(dataModel.text, newMeanings))
         }
     }
+    return newDataModels
 }
 
 fun mapHistoryEntityToSearchResult(list: List<HistoryEntity>): List<DataModel> {

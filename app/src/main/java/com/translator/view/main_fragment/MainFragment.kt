@@ -18,6 +18,7 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.github.terrakok.cicerone.Router
@@ -32,6 +33,7 @@ import com.translator.utils.network.SharedPreferencesDelegate
 import com.translator.utils.ui.viewById
 import com.translator.view.BOTTOM_SHEET_FRAGMENT_DIALOG_TAG
 import com.translator.view.SearchDialogFragment
+import com.translator.viewmodel.MainViewModelFactory
 import org.koin.java.KoinJavaComponent
 
 private const val LIST_KEY = "list_key"
@@ -149,9 +151,13 @@ class MainFragment : BaseFragment<AppState, MainInteractor>() {
             throw IllegalStateException("The ViewModel should be initialised first")
         }
 
-
+/* не удалять инициализацию через Koin
         val viewModel: MainViewModel by lazy { mainScreenScope.get() }
         model = viewModel
+*/
+        model = ViewModelProvider(this,
+            MainViewModelFactory(mainScreenScope.get()))[MainViewModel::class.java]
+
         model.subscribe().observe(viewLifecycleOwner, observer)
     }
 

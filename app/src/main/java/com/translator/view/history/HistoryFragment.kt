@@ -10,10 +10,12 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.github.terrakok.cicerone.Router
 import com.translator.R
 import com.translator.databinding.FragmentHistoryFavoriteBinding
+import com.translator.di.ConnectKoinModules
 import com.translator.di.ConnectKoinModules.historyScreenScope
 import com.translator.domain.base.BaseFragment
 import com.translator.model.data.AppState
@@ -22,6 +24,9 @@ import com.translator.navigation.IScreens
 import com.translator.utils.ui.viewById
 import com.translator.view.BOTTOM_SHEET_FRAGMENT_DIALOG_TAG
 import com.translator.view.SearchDialogFragment
+import com.translator.view.main_fragment.MainViewModel
+import com.translator.viewmodel.HistoryViewModelFactory
+import com.translator.viewmodel.MainViewModelFactory
 import org.koin.java.KoinJavaComponent
 
 
@@ -148,9 +153,12 @@ class HistoryFragment : BaseFragment<AppState, HistoryInteractor>() {
             throw IllegalStateException("The ViewModel should be initialised first")
         }
 
-
+/* не удалять инициализацию через Koin
         val viewModel: HistoryViewModel by lazy { historyScreenScope.get() }
         model = viewModel
+*/
+        model = ViewModelProvider(this,
+            HistoryViewModelFactory(historyScreenScope.get()))[HistoryViewModel::class.java]
 
         model.subscribe().observe(viewLifecycleOwner) { appState ->
             when (appState) {

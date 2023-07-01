@@ -10,8 +10,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class MainInteractor(
-    private val repositoryRemote: Repository<List<DataModel>>,
-    private val repositoryLocal: RepositoryLocal<List<DataModel>>
+    var repositoryRemote: Repository<List<DataModel>>,
+    var repositoryLocal: RepositoryLocal<List<DataModel>>
 ) : Interactor<AppState> {
 
     override suspend fun getData(word: String, fromRemoteSource: Boolean): StateFlow<AppState> {
@@ -23,7 +23,6 @@ class MainInteractor(
         } else {
             appState = AppState.Success(repositoryLocal.getData(word))
         }
-
         return MutableStateFlow(appState)
     }
 

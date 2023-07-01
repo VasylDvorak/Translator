@@ -14,7 +14,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 
 abstract class BaseViewModel<T : AppState>(
-    protected open var _liveDataForViewToObserve: MutableLiveData<T> = MutableLiveData(),
+    open var _liveDataForViewToObserve: MutableLiveData<T> = MutableLiveData(),
     protected open var _liveDataFindWordInHistory: MutableLiveData<DataModel> = MutableLiveData(),
     var savedStateHandle: SavedStateHandle = SavedStateHandle(),
     protected open val _mutableLiveData: MutableLiveData<T> = MutableLiveData()
@@ -23,7 +23,7 @@ abstract class BaseViewModel<T : AppState>(
     protected var queryStateFlow = MutableStateFlow(Pair("", true))
     protected var queryStateFlowFindWordFromHistory = MutableStateFlow("")
     protected var job: Job = Job()
-    protected val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    var coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     override fun onCleared() {
         super.onCleared()
