@@ -52,7 +52,7 @@ class MainViewModel(var interactor: MainInteractor) : BaseViewModel<AppState>() 
     }
 
 
-    override fun onCleared() {
+    public override fun onCleared() {
         _liveDataForViewToObserve.value = AppState.Success(null)
         _liveDataFindWordInHistory.value = null
         super.onCleared()

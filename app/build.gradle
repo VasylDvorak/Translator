@@ -49,7 +49,7 @@ android {
 
 dependencies {
 
-//Design
+    //Design
     implementation Design.appcompat
     implementation Design.material
     implementation Design.savedstate
@@ -60,7 +60,7 @@ dependencies {
     implementation Design.recyclerview
     implementation Design.viewmodel_ktx
 
-//Kotlin
+    //Kotlin
     implementation Kotlin.core
     implementation Kotlin.coroutines_core
     implementation Kotlin.coroutines_android
@@ -116,10 +116,8 @@ dependencies {
     //RecyclerView
     debugImplementation 'androidx.test.espresso:espresso-contrib:3.5.1'
 
-//CoroutineTests
+    //CoroutineTests
     testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.4.3'
-
-
 
 
 }

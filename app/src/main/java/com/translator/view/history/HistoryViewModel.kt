@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 
-class HistoryViewModel(private val interactor: HistoryInteractor) :
+class HistoryViewModel(var interactor: HistoryInteractor) :
     BaseViewModel<AppState>() {
 
     private val liveDataForViewToObserve: LiveData<AppState> = _mutableLiveData
@@ -44,7 +44,7 @@ class HistoryViewModel(private val interactor: HistoryInteractor) :
         _mutableLiveData.postValue(AppState.Error(error))
     }
 
-    override fun onCleared() {
+    public override fun onCleared() {
         _mutableLiveData.value = AppState.Success(null)
         _liveDataFindWordInHistory.value = null
         super.onCleared()
@@ -69,7 +69,7 @@ class HistoryViewModel(private val interactor: HistoryInteractor) :
                     return@filter true
                 }
             }
-                .debounce(500)
+               // .debounce(500)
                 .distinctUntilChanged()
                 .flatMapLatest { query ->
                     findWordFromHistory(query)

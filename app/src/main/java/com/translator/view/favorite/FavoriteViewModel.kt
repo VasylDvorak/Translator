@@ -7,7 +7,7 @@ import com.translator.utils.parseLocalSearchResults
 import com.translator.viewmodel.BaseViewModel
 import kotlinx.coroutines.launch
 
-class FavoriteViewModel(private val interactor: FavoriteInteractor) :
+class FavoriteViewModel(var interactor: FavoriteInteractor) :
     BaseViewModel<AppState>() {
     private val liveDataForViewToObserve: LiveData<AppState> = _mutableLiveData
     fun subscribe(): LiveData<AppState> {
@@ -29,7 +29,7 @@ class FavoriteViewModel(private val interactor: FavoriteInteractor) :
         _mutableLiveData.postValue(AppState.Error(error))
     }
 
-    override fun onCleared() {
+    public override fun onCleared() {
         _mutableLiveData.value = AppState.Success(null)
         super.onCleared()
     }

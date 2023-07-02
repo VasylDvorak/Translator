@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 
 class HistoryInteractor(
-    private val repositoryLocal: RepositoryLocal<List<DataModel>>
+    val repositoryLocal: RepositoryLocal<List<DataModel>>
 ) : Interactor<AppState> {
 
     override suspend fun getData(word: String, fromRemoteSource: Boolean): Flow<AppState> {
