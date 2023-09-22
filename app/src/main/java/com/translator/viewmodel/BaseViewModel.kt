@@ -6,20 +6,47 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.translator.model.data.AppState
 import com.translator.model.data.DataModel
-import com.translator.rx.SchedulerProvider
-import io.reactivex.rxjava3.disposables.CompositeDisposable
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
 
 abstract class BaseViewModel<T : AppState>(
-    protected val liveDataForViewToObserve: MutableLiveData<T> = MutableLiveData(),
-    protected val compositeDisposable: CompositeDisposable = CompositeDisposable(),
-    protected val schedulerProvider: SchedulerProvider = SchedulerProvider(),
-    var savedStateHandle: SavedStateHandle = SavedStateHandle()
-) : ViewModel(){
+    open var _liveDataForViewToObserve: MutableLiveData<T> = MutableLiveData(),
+    protected open var _liveDataFindWordInHistory: MutableLiveData<DataModel> = MutableLiveData(),
+    var savedStateHandle: SavedStateHandle = SavedStateHandle(),
+    protected open val _mutableLiveData: MutableLiveData<T> = MutableLiveData()
+) : ViewModel() {
 
-    open fun getData(word: String, isOnline: Boolean): LiveData<T> = liveDataForViewToObserve
+    protected var queryStateFlow = MutableStateFlow(Pair("", true))
+    protected var queryStateFlowFindWordFromHistory = MutableStateFlow("")
+    protected var job: Job = Job()
+    var coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     override fun onCleared() {
-        compositeDisposable.clear()
+        super.onCleared()
+        cancelJob()
     }
 
+    protected fun cancelJob() {
+        queryStateFlow = MutableStateFlow(Pair("", true))
+    }
+
+    open fun getData(word: String, isOnline: Boolean): LiveData<T> =
+        _liveDataForViewToObserve
+
+    open fun findWordInHistory(word: String): LiveData<DataModel> =
+        _liveDataFindWordInHistory
+
+    abstract fun handleError(error: Throwable)
+
+
+    protected val viewModelCoroutineScope = CoroutineScope(
+        Dispatchers.Main
+                + SupervisorJob()
+                + CoroutineExceptionHandler { _, throwable ->
+            handleError(throwable)
+        })
 }

@@ -1,16 +1,15 @@
 package com.translator.model.datasource
 
-import com.translator.application.App
+
 import com.translator.model.data.DataModel
-import io.reactivex.rxjava3.core.Observable
-import javax.inject.Inject
+import org.koin.java.KoinJavaComponent.getKoin
+
 
 class RetrofitImplementation : DataSource<List<DataModel>> {
-    @Inject
-    lateinit var getService: ApiService
-    override fun getData(word: String): Observable<List<DataModel>> {
-        App.instance.appComponent.inject(this)
-        return getService.search(word)
-    }
 
+    override suspend fun getData(word: String): List<DataModel> {
+        val getService = getKoin().get<ApiService>()
+        return getService.searchAsync(word).await()
+    }
+    fun getBoolean(argumentOne: Boolean, argumentTwo: Boolean)= argumentOne || argumentTwo
 }

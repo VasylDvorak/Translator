@@ -6,6 +6,6 @@ import kotlinx.android.parcel.Parcelize
 
 @Parcelize
 class DataModel(
-    @field:SerializedName("text") val text: String?,
-    @field:SerializedName("meanings") val meanings: List<Meanings>?
-): Parcelable
+    @field:SerializedName("text") val text: String? = "",
+    @field:SerializedName("meanings") val meanings: List<Meanings>? = listOf()
+) : Parcelable

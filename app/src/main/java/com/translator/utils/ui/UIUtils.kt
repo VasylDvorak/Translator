@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.appcompat.app.AlertDialog
 import com.translator.R
 
-
 fun getStubAlertDialog(context: Context): AlertDialog {
     return getAlertDialog(context, null, null)
 }

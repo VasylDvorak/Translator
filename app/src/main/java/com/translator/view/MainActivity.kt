@@ -1,57 +1,47 @@
 package com.translator.view
 
-import android.content.Context
+import android.animation.ObjectAnimator
+import android.os.Build
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
+import android.os.CountDownTimer
+import android.view.View
+import android.view.ViewTreeObserver
+import android.view.animation.AccelerateDecelerateInterpolator
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.animation.doOnEnd
 import com.github.terrakok.cicerone.NavigatorHolder
 import com.github.terrakok.cicerone.androidx.AppNavigator
 import com.translator.R
-import com.translator.application.App
 import com.translator.databinding.ActivityMainBinding
 import com.translator.presenter.BackButtonListener
 import com.translator.presenter.MainPresenter
-import javax.inject.Inject
-import kotlin.properties.Delegates
+import org.koin.android.ext.android.inject
 
-private const val THEME_KEY = "theme_key"
+private const val DURATION = 1000L
+private const val COUNTDOWN_DURATION = 2000L
+private const val COUNTDOWN_INTERVAL = 1000L
+
 class MainActivity : AppCompatActivity() {
-    @Inject
-    lateinit var navigatorHolder: NavigatorHolder
 
-    var setTheme by Delegates.notNull<Boolean>()
+    private val navigatorHolder: NavigatorHolder by inject()
+
 
     val navigator = AppNavigator(this, R.id.container)
 
-    private val presenter = MainPresenter().apply {
-            App.instance.appComponent.inject(this)
-        }
-
+    private val presenter = MainPresenter()
 
     private var vb: ActivityMainBinding? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setTheme = this.getPreferences(Context.MODE_PRIVATE).getBoolean(THEME_KEY, false)
-        setDarkLightTheme(setTheme)
-
+        setDefaultSplashScreen()
         vb = ActivityMainBinding.inflate(layoutInflater)
         setContentView(vb?.root)
-
-        App.instance.appComponent.inject(this)
         presenter.mainFragmentStart()
 
     }
 
-    private fun setDarkLightTheme(setTheme: Boolean) {
-        if (setTheme) {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-        } else {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-        }
-    }
 
     override fun onResumeFragments() {
         super.onResumeFragments()
@@ -70,38 +60,58 @@ class MainActivity : AppCompatActivity() {
             }
         }
         presenter.backClicked()
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.main_menu, menu)
-        var updateStatusTheme = menu?.findItem(R.id.change_theme)
-        updateStatusTheme?.setChecked(setTheme)
-
-        return super.onCreateOptionsMenu(menu)
-
-
 
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
+    private fun setDefaultSplashScreen() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            setSplashScreenHideAnimation()
+           setSplashScreenDuration()
+        }
+    }
 
-            R.id.change_theme -> {
-                item.isChecked = !item.isChecked
-                saveStatusTheme(item.isChecked)
-                setDarkLightTheme(item.isChecked )
-                return true
+    @RequiresApi(31)
+    private fun setSplashScreenHideAnimation() {
+
+        splashScreen.setOnExitAnimationListener { splashScreenView ->
+            ObjectAnimator.ofFloat(
+                splashScreenView,
+                View.TRANSLATION_Y,
+                0f,
+                -splashScreenView.height.toFloat()
+            ).apply {
+                interpolator = AccelerateDecelerateInterpolator()
+                duration = DURATION
+                doOnEnd {
+                    splashScreenView.removeAllViews()
+                }
+                start()
             }
         }
-        return super.onOptionsItemSelected(item)
+
     }
 
-    private fun saveStatusTheme(nightTheme: Boolean) {
-            with(this.getPreferences(Context.MODE_PRIVATE).edit()) {
-                putBoolean(THEME_KEY, nightTheme)
-                apply()
-        }
+    private fun setSplashScreenDuration() {
+        var isHideSplashScreen = false
+        object : CountDownTimer(COUNTDOWN_DURATION, COUNTDOWN_INTERVAL) {
+            override fun onTick(millisUntilFinished: Long) {}
+            override fun onFinish() {
+                isHideSplashScreen = true
+            }
+        }.start()
+        val content: View = findViewById(android.R.id.content)
+        content.viewTreeObserver.addOnPreDrawListener(
+            object : ViewTreeObserver.OnPreDrawListener {
+                override fun onPreDraw(): Boolean {
+                    return if (isHideSplashScreen) {
+                        content.viewTreeObserver.removeOnPreDrawListener(this)
+                        true
+                    } else {
+                        false
+                    }
+                }
+            }
+        )
+
     }
-
-
 }

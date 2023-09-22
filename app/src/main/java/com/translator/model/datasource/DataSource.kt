@@ -1,9 +1,10 @@
 package com.translator.model.datasource
 
-import io.reactivex.rxjava3.core.Observable
+import com.translator.model.data.DataModel
 
 
-interface DataSource<T : Any> {
+interface DataSource<T> {
 
-    fun getData(word: String): Observable<T>
+    suspend fun getData(word: String): List<DataModel>
+
 }
