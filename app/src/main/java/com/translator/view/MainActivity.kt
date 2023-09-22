@@ -23,7 +23,7 @@ private const val COUNTDOWN_DURATION = 2000L
 private const val COUNTDOWN_INTERVAL = 1000L
 
 class MainActivity : AppCompatActivity() {
-
+///
     private val navigatorHolder: NavigatorHolder by inject()
 
 
