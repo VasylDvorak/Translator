@@ -1,26 +1,23 @@
 package com.translator.presenter
 
-import com.github.terrakok.cicerone.Cicerone
 import com.github.terrakok.cicerone.Router
-import com.translator.navigation.AndroidScreens
 import com.translator.navigation.IScreens
+import org.koin.java.KoinJavaComponent.getKoin
+import org.koin.java.KoinJavaComponent.inject
 
-import javax.inject.Inject
 
-class MainPresenter
-   {
-    @Inject
-    lateinit var router: Router
+class MainPresenter {
 
-    @Inject
-    lateinit var screens: IScreens
-    fun mainFragmentStart () {
-
-        router.replaceScreen(screens.startMainFragment())
+    private val router: Router by inject(Router::class.java)
+    private val screen = getKoin().get<IScreens>()
+    fun mainFragmentStart() {
+        router.replaceScreen(screen.startMainFragment())
 
     }
 
-    fun backClicked () {
-        router.exit()
+    fun backClicked() {
+
+        router.replaceScreen(screen.startMainFragment())
     }
+
 }
